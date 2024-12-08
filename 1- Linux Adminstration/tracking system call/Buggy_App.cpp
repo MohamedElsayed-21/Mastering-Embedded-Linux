@@ -2,7 +2,6 @@
 #include <fstream>
 #include <string>
 
-//this is comment to examine the git commit 
 int main() {
     std::ifstream file("sample.txt"); 
     if (!file.is_open()) {

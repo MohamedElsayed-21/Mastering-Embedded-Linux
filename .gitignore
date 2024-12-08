@@ -1,2 +1,5 @@
 #ignore All files .out files 
 *.out
+
+#ignore .vs code changes 
+.vscode
