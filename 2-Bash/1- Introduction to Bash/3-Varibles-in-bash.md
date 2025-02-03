@@ -194,6 +194,25 @@ Using `${}` offers several advantages over using `$` alone:
   echo ${long_string:5}     # Output: World (extracts from the 6th character onward)
   ```
 ---
+## 5. Using `echo` 
+
+The `echo` command is used to display text and variables in the terminal. It supports several options:
+
+- `echo -n "text"` : Print text without a trailing newline
+- `echo -e "text"` : Enable interpretation of escape sequences (e.g., `\n`, `\t`)
+- `echo -E "text"` : Disable escape sequence interpretation (default behavior)
+- `echo "$variable"` : Print the value of a variable
+
+### Example:
+
+```bash
+#!/bin/bash
+echo "Hello, World!"
+echo -n "This is printed without a newline. "
+echo "Now we are on a new line."
+echo -e "Line1\nLine2\tTabbed"
+```
+
 
 ## Best Practices for Using Variables in Bash
 
