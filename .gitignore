@@ -6,3 +6,12 @@
 
 #ignore .history changes 
 .history
+
+# tells Git to ignore everything inside except .md files
+/3-Manual-customization/*
+!/3-Manual-customization/*.md
+
+
+
+/5-Yocto/*
+!/5-Yocto/*.md
