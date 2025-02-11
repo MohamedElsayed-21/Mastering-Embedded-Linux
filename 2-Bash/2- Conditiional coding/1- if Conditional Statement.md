@@ -21,7 +21,7 @@ An `if` statement consists of:
 - **`else`**: Executes if the condition in `if` is false.
 - **`elif`** (else if): Allows multiple conditions in a single `if` statement.
 
-### **Syntax Example**
+### **Example**
 
 ```bash
 if [ condition ]; then
@@ -77,7 +77,7 @@ fi
 | `-ge`    | Greater than or equal to |
 | `-le`    | Less than or equal to    |
 
-#### **Syntax for Numeric Comparison**
+#### **Example for Numeric Comparison**
 
 ```bash
 if [ "$num1" -gt "$num2" ]; then
@@ -98,7 +98,7 @@ fi
 
 **Double brackets `[[ ]]` are exclusive to Bash and do not work in other shells.**
 
-#### **Syntax for String Matching**
+#### **Example for String Matching**
 
 ```bash
 if [[ "$string" = *pattern* ]]; then
@@ -112,7 +112,7 @@ fi
 
 You can use **`&&`** (AND) and **`||`** (OR) to combine multiple conditions.
 
-### **Syntax Example:**
+### **Example:**
 
 ```bash
 if [ condition1 ] && [ condition2 ]; then
@@ -141,7 +141,7 @@ Both `[ ]` and `[[ ]]` support these operators, but `[[ ]]` offers more flexibil
 | `-w`     | File is writable                  |
 | `-x`     | File is executable                |
 
-### **Example Syntax:**
+### **Example :**
 
 ```bash
 if [ -f "filename" ]; then
