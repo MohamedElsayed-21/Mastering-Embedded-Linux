@@ -36,7 +36,6 @@ A shell is a command-line interpreter that provides an interface between the use
 - Path: `/usr/bin/fish`
 
 ##### **Embedded Shells**
-
 - Lightweight shells like `ash` or `busybox sh` used in resource-constrained environments (IoT, embedded systems).
 ---
 
@@ -95,6 +94,4 @@ A shell is a command-line interpreter that provides an interface between the use
 - Reads configuration files only if explicitly invoked (e.g., using `source`).
 - Used in cron jobs, scripts, or automated system tasks.
 
-###### ** Common Use Cases** :Running scripts, cron jobs, or automated processes.
-
-
+###### **Common Use Cases** :Running scripts, cron jobs, or automated processes.
