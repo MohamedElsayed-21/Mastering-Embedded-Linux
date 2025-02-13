@@ -1,6 +1,7 @@
 #  Variables in Bash Scripting
 
 ## Introduction to Variables in Bash
+- Bash is a dynamically typed language where variables are treated as strings by default but can be used as numbers in arithmetic operations if applicable.
 - Variables in Bash are used to store data that can be accessed and manipulated throughout a script.
 - They provide flexibility and allow you to write dynamic and reusable scripts.
 - A variable is a value that can vary or change.
@@ -202,7 +203,6 @@ The `echo` command is used to display text and variables in the terminal. It sup
 - `echo -e "text"` : Enable interpretation of escape sequences (e.g., `\n`, `\t`)
 - `echo -E "text"` : Disable escape sequence interpretation (default behavior)
 - `echo "$variable"` : Print the value of a variable
-
 ### Example:
 
 ```bash
@@ -212,6 +212,32 @@ echo -n "This is printed without a newline. "
 echo "Now we are on a new line."
 echo -e "Line1\nLine2\tTabbed"
 ```
+
+### **double quotes (`""`)** Vs **single quotes
+In **Bash scripting**, the difference between **double quotes (`""`)** and **single quotes (`''`)** lies in how they handle **variable expansion** and **command substitution**:  
+
+### **1. Double Quotes (`""`)**  
+- **Allow variable expansion** (`$variable`).  
+- **Allow command substitution** (`$(command)`).  
+- **Allow escape sequences** (e.g., `\n`, `\t`).  
+
+**Example:**  
+```bash
+name="Mohamed"
+echo "Hello, $name"  # Output: Hello, Mohamed
+```
+
+### **2. Single Quotes (`''`)**  
+- **Do NOT allow variable expansion** (`$variable` is treated as plain text).  
+- **Do NOT allow command substitution** (`$(command)` remains unchanged).  
+- **Escape sequences are NOT interpreted** (`\n` is printed as `\n`).  
+
+**Example:**  
+```bash
+name="Mohamed"
+echo 'Hello, $name'  # Output: Hello, $name
+```  
+
 
 
 ## Best Practices for Using Variables in Bash
