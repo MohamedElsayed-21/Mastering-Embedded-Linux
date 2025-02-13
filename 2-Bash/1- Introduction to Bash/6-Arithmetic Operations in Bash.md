@@ -61,6 +61,7 @@ echo $(( A-- ))
 - For this we use another utility called **`bc`**, it referred to as **`Basic Calculator`**.
 - It works in an interactive mode and also you can input to another command as well
 
+
 ```bash
 #!/bin/bash
 a=5
@@ -68,6 +69,19 @@ b=3
 result=$(echo "scale=2; $a / $b" | bc)
 echo $result  # Output: 1.66
 ```
+
+
+
+### 1.5 Using `declare -i`
+`declare -i` can be used to define an integer variable, allowing arithmetic operations directly within the assignment.
+```bash
+#!/bin/bash
+declare -i a=$b+$c
+echo $a  # Output: sum of b and c
+```
+- This approach ensures that `a` is treated as an integer and calculations are performed automatically.
+
+
 
 ## 2. Supported Arithmetic Operators
 -  Addition  example:  `$((a + b))`   
@@ -77,6 +91,16 @@ echo $result  # Output: 1.66
 -  Floating-Point Division example: `echo "$a / $b" | bc -l`  Returns decimal result
 -  Modulus example: `$((a % b))`  Returns remainder 
 -  Exponentiation example: `$((a ** b))` Computes power 
+
+
+
+
+
+
+
+
+
+
 
 
 
