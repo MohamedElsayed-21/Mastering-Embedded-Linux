@@ -59,6 +59,7 @@ By default, `case` does not support complex regex patterns. However, Bash allows
 
 ```bash
 shopt -s extglob  # Enable advanced pattern matching
+export LC_COLLATE=C # to enable case sensitive in REGEX .
 ```
 
 Extended pattern matching operators include:
