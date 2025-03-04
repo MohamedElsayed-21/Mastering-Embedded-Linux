@@ -42,36 +42,35 @@ The **Yocto Project** is an open-source collaboration project that provides temp
 
 ---
 
-### **Core Concepts**
+#### **Core Concepts**
 - **BitBake**
    - **BitBake** is the build engine used by Yocto.
    - It reads **recipes** (instructions for building packages) and executes tasks like fetching source code, compiling, and packaging.
    - BitBake is highly customizable and supports parallel builds.
 
-
    - **BitBake Workflow:**  
 
-   1. **Create `bitbake.lock`** → Ensures only one instance of BitBake runs at a time to prevent conflicts.  
-   2. **Read `build/conf/bblayers.conf`** → Defines which layers (e.g., meta-openembedded, meta-yocto) are included in the build.  
-   3. **Read `build/conf/local.conf`** → Contains user-specific configurations like `MACHINE`, `DISTRO`, `IMAGE_FSTYPES`, etc.  
-   4. **Read `meta/conf/layer.conf`** → Defines how BitBake should handle each layer, including priority and dependencies.  
-   5. **Read `meta/conf/bitbake.conf`** → Core configuration file that sets global variables and paths for the build system.  
-   6. **Read `classes/base.bbclass`** → Provides common build functions and settings shared across multiple recipes.  
-   7. **Parse `core-image-minimal.bb`** → This is the main recipe for building a minimal image, specifying dependencies and tasks.  
-   8. **Execute Tasks (`do_fetch` → `do_unpack` → `do_patch` → `do_configure` → `do_compile` → `do_install` → `do_package` → `do_rootfs` → `do_deploy`)** → Runs each task step-by-step to build the image and generate output files.  
-   9. **Remove `bitbake.lock`** → Signals that the build process is complete, allowing future builds to start.
-   - run this command  to see the workflow of bitbake 
-       ``` bash 
-      strace -e trace=openat -f bitbake core-image-minimal |& grep -E ~/Documents/Mastering_Embedded_Linux/5-Yocto/poky/qemu-build | grep -v cache
-       ```
+      1. **Create `bitbake.lock`** → Ensures only one instance of BitBake runs at a time to prevent conflicts.  
+      2. **Read `build/conf/bblayers.conf`** → Defines which layers (e.g., meta-openembedded, meta-yocto) are included in the build.  
+      3. **Read `build/conf/local.conf`** → Contains user-specific configurations like `MACHINE`, `DISTRO`, `IMAGE_FSTYPES`, etc.  
+      4. **Read `meta/conf/layer.conf`** → Defines how BitBake should handle each layer, including priority and dependencies.  
+      5. **Read `meta/conf/bitbake.conf`** → Core configuration file that sets global variables and paths for the build system.  
+      6. **Read `classes/base.bbclass`** → Provides common build functions and settings shared across multiple recipes.  
+      7. **Parse `core-image-minimal.bb`** → This is the main recipe for building a minimal image, specifying dependencies and tasks.  
+      8. **Execute Tasks (`do_fetch` → `do_unpack` → `do_patch` → `do_configure` → `do_compile` → `do_install` → `do_package` → `do_rootfs` → `do_deploy`)** → Runs each task step-by-step to build the image and generate output files.  
+      9. **Remove `bitbake.lock`** → Signals that the build process is complete, allowing future builds to start.
+      - run this command  to see the workflow of bitbake 
+         ``` bash 
+         strace -e trace=openat -f bitbake core-image-minimal |& grep -E ~/Documents/Mastering_Embedded_Linux/5-Yocto/poky/qemu-build | grep -v cache
+         ```
 
 - **OpenEmbedded (OE)** is a build framework for creating customized Linux distributions for embedded systems. It provides a flexible, cross-compilation environment with package management, dependency handling, and build automation.
 
 - **Poky** is the reference distribution of the **Yocto Project**. It serves as a build tool and minimal embedded Linux distribution, integrating **BitBake** and **OpenEmbedded** metadata.  
 **Poky = OpenEmbedded Core + BitBake + Additional Metadata**  
-- **OpenEmbedded Core (OE-Core)** → Provides base recipes and classes.  
-- **BitBake** → The build engine.  
-- **Additional Metadata (meta-poky, meta-yocto, etc.)** → Adds configurations and customizations.  
+   - **OpenEmbedded Core (OE-Core)** → Provides base recipes and classes.  
+   - **BitBake** → The build engine.  
+   - **Additional Metadata (meta-poky, meta-yocto, etc.)** → Adds configurations and customizations.  
 
 - **Layers**
    - **Layers** are directories that contain related recipes, configurations, and files.
@@ -368,9 +367,9 @@ Modify `build-raspberrypi4/conf/local.conf` and set ` DISTRO ?= "infotainment"`:
 
 ---
 
-### **Enable systemd for Infotainment Distribution**  
+#### **Enable systemd for Infotainment Distribution**  
 
-#### By default, **Poky uses `sysvinit`** as its **init manager** unless explicitly changed. To switch to **systemd** for the Infotainment distribution, we will include a configuration file.  
+##### By default, **Poky uses `sysvinit`** as its **init manager** unless explicitly changed. To switch to **systemd** for the Infotainment distribution, we will include a configuration file.  
 
 For more details on init managers in Yocto, refer to the official documentation:  
 🔗 [Yocto Init Manager Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/init-manager.html#using-systemd)  
@@ -466,34 +465,41 @@ Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`:
 - **Add the Following Content to `ivi-test-image.bb`**  
 
    ```ivi-test-image.bb
-   require recipes-core/images/rpi-test-image.bb
+   require  recipes-core/images/rpi-test-image.bb
 
-   inherit audio
-   # If you use :append in conf files, leave a blank space after `"`, and do not leave spaces before and after `=`.
-   # In recipes, you can use both :append and `+=`. When using `+=`, leave spaces before and after it.
-   MACHINE_FEATURES += "wifi bluetooth alsa"
-   IMAGE_INSTALL:append=" vsomeip nano c-helloworld cpp-helloworld appssl"
+   # if you use :append -you have to use it in conf only- you have to leave blank space after `"` and don't leave space before and after `=` .
+   #  vice versa in `+=`- in recipes you can use both options :append and += -  you will leave blank space before and after it and not necssary to leave one after `"`
+
+   # inherit audio
+   # inherit qtfeatures
+   # this feature  alreadey existed in (rpi-test-image.bb --> rpi-base.inc so you don't need to add it again)
+   # MACHINE_FEATURES += "wifi bluetooth alsa"
+
+   IMAGE_INSTALL:append=" vsomeip nano c-helloworld cpp-helloworld appssl can-utils "
+
    IMAGE_FEATURES += " ssh-server-dropbear debug-tweaks tools-debug "
+
+
+
+   # Set the root filesystem size
+   # IMAGE_ROOTFS_SIZE = "16384"
+   # To run custom commands after the root filesystem is created.
+   # ROOTFS_POSTPROCESS_COMMAND += "my_custom_script.sh"
+
+
    ```
 
  **Explanation of the Recipe**  
 
 - **`require recipes-core/images/rpi-test-image.bb`**  
   - Inherits from `rpi-test-image.bb`, meaning it will have the same base configuration.  
-
-- **`inherit audio`**  
-  - Inherits the `audio` class, which likely sets up sound-related configurations.  
-
-- **`IMAGE_INSTALL:append=" nano c-helloworld cpp-helloworld appssl rpi-play "`**  
-  - Appends the listed packages (`nano`, custom Hello World apps, OpenSSL app, and a media player).  
-
 - **`IMAGE_FEATURES += " ssh-server-dropbear debug-tweaks tools-debug "`**  
   - Adds features like SSH support (`dropbear`), debugging tweaks, and extra tools.  
   🔗 [Image Features yocto documentaion](https://docs.yoctoproject.org/4.0.25/ref-manual/features.html#image-features)  
 
 ---
 
-### **Structure of an Image Recipe in Yocto**  
+#### **Structure of an Image Recipe in Yocto**  
 
 An **image recipe** in Yocto typically consists of the following components:  
 1. **Base Image** (`require` statement)  
@@ -517,7 +523,7 @@ For reference, check the base images available in Yocto:
 🔗 [meta-raspberrypi Documentation](https://meta-raspberrypi.readthedocs.io/en/latest/)  
 
 
-### **Best Practices for Naming Yocto Recipes**  
+#### **Best Practices for Naming Yocto Recipes**  
 
 - **Use the software name** → Match the upstream package (e.g., `nano_6.4.bb`).  
 - **Follow `<package-name>_<version>.bb`** → Example: `mytool_1.0.bb`.  
@@ -535,54 +541,52 @@ For reference, check the base images available in Yocto:
 - **Generate the Initial Recipe file**  
 
 1. **Create a directory for C++ recipes**:  
-   ```bash
-   mkdir -p layers/meta-IVI/recipes-cpp/cpp-helloworld
-   ```
- **why this structure necessary?**
-  - **Following Yocto's Standard Structure**  
-        - Yocto organizes recipes under folders like `recipes-core/`, `recipes-devtools/`, etc., making it easier to manage and locate them
-  - *Parsing & `layer.conf` Configuration**  
-        - Each layer contains a `layer.conf` file, which defines how BitBake finds recipe files.  
-        - Typically, `BBFILES` is set like this:  
+         ```bash
+         mkdir -p layers/meta-IVI/recipes-cpp/cpp-helloworld
+         ```
+      **why this structure necessary?**
+   - **Following Yocto's Standard Structure**  
+         - Each layer contains a `layer.conf` file, which defines how BitBake finds recipe files.  
+         - Typically, `BBFILES` is set like this:  
             ```layer.conf
             BBFILES += "${LAYERDIR}/recipes-*/*/*.bb"
             ```
-      - This means Yocto expects `.bb` files to be inside a **subdirectory** within `recipes-*`.  
+         - This means Yocto expects `.bb` files to be inside a **subdirectory** within `recipes-*`.  
 
 
-2. **Run the following command inside the `meta-IVI/recipes-cpp/cpp-helloworld` layer to create the base recipe:** 
-🔗 [Recpitool Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#creating-the-base-recipe-using-recipetool-create)
+   2. **Run the following command inside the `meta-IVI/recipes-cpp/cpp-helloworld` layer to create the base recipe:** 
+   🔗 [Recpitool Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#creating-the-base-recipe-using-recipetool-create)
 
-   ```bash
-   cd layers/meta-IVI/recipes-cpp/cpp-helloworld
-   recipetool create -o cpp-helloworld_1.0.bb https://github.com/embeddedlinuxworkshop/y_t1.git
-   ```
+      ```bash
+      cd layers/meta-IVI/recipes-cpp/cpp-helloworld
+      recipetool create -o cpp-helloworld_1.0.bb https://github.com/embeddedlinuxworkshop/y_t1.git
+      ```
 
-This will generate a folder named `cpp-helloworld_1.0.bb` with an initial recipe file.  
+       This will generate a folder named `cpp-helloworld_1.0.bb` with an initial recipe file.  
 
 
 - **Modify the Recipe**  
 
- After generating the recipe, edit the `cpp-helloworld_1.0.bb` file and apply the following changes:  
+   After generating the recipe, edit the `cpp-helloworld_1.0.bb` file and apply the following changes:  
 
-   ```cpp-helloworld_1.0.bb
-   # Set the source directory inside the work directory
-   S = "${WORKDIR}/git"
+      ```cpp-helloworld_1.0.bb
+      # Set the source directory inside the work directory
+      S = "${WORKDIR}/git"
 
-   # Define the compilation steps
-   do_compile () {
-      ${CXX} ${S}/main.cpp -o cpp-app
-   }
+      # Define the compilation steps
+      do_compile () {
+         ${CXX} ${S}/main.cpp -o cpp-app
+      }
 
-   # Define installation steps
-   do_install () {
-      install -d ${D}${bindir}
-      install -m 0755 cpp-app ${D}${bindir}
-   }
+      # Define installation steps
+      do_install () {
+         install -d ${D}${bindir}
+         install -m 0755 cpp-app ${D}${bindir}
+      }
 
-   # Skip package QA checks to avoid errors
-   do_package_qa[noexec] = "1"
-   ```
+      # Skip package QA checks to avoid errors
+      do_package_qa[noexec] = "1"
+      ```
 
 ---
 
@@ -620,11 +624,11 @@ Since `appssl` is a **local application**, we must use `SRC_URI = "file://appssl
   [SRC_URI](https://docs.yoctoproject.org/bitbake/2.10/bitbake-user-manual/bitbake-user-manual-ref-variables.html#term-SRC_URI)
 
 - **Folder Structure**  
-We follow the Yocto best practices by creating:  
+   We follow the Yocto best practices by creating:  
    ```bash
    mkdir -p layers/meta-IVI/recipes-cpp/appssl/files
    ```
-
+   The folder  Structure be like this :
 
    ``` terminal output
    recipes-cpp
@@ -633,7 +637,7 @@ We follow the Yocto best practices by creating:
       └── files
           └── appssl.cpp
    ```
-#### The `files/` directory or (  `$PN` → `appssl/` or `$PN_$PV` → `appssl_1.0` ) is necessary for BitBake to recognize and access local source files. 
+#### The `files/` directory or (  `{BPN}:` → `appssl/` or `${BP} - ${BPN}-${PV}` → `appssl_1.0` ) is necessary for BitBake to recognize and access local source files. 
 
 
 
@@ -644,7 +648,7 @@ To determine the correct flags for linking against OpenSSL, you can use:
   $  pkg-config --libs --cflags openssl
    -lssl -lcrypto
    ```
-This helps find the necessary compiler and linker flags.
+   This helps find the necessary compiler and linker flags.
 
 
 #### **The Package  Recipe**  
@@ -680,14 +684,10 @@ This helps find the necessary compiler and linker flags.
 - **`${D}${bindir}`** → Installs the compiled binary into `/usr/bin/` inside the target filesystem.
 
 #### **Understanding `install` Command**  
-The `install` command in Linux is used for copying and setting file permissions.  
-To check its options, run:  
-      ```bash
-      man install
-      ```
-In our case:
-- `install -d` → Creates the destination directory.
-- `install -m 0755` → Copies the file and sets permissions (`rwxr-xr-x`).
+- The `install` command in Linux is used for copying and setting file permissions. To check its options, run:  `man install` 
+- In our case:
+   - `install -d` → Creates the destination directory.
+   - `install -m 0755` → Copies the file and sets permissions (`rwxr-xr-x`).
 
 ---
 
@@ -1270,25 +1270,14 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
 ---
 
 
-Got it! Let's structure the documentation clearly. Here's a draft:  
-
----
-
-تمام يا معلم، دي النسخة بدون ترقيم:  
-
----
-
 ### **16. VSOMEIP Integration with Yocto (Kirkstone)**    
 
 **VSOMEIP** is an open-source implementation of **SOME/IP (Scalable service-Oriented Middleware over IP)** used in automotive Ethernet-based communication. It enables service-oriented communication between ECUs (Electronic Control Units) following the **AUTOSAR** standard.  
 
----
-
-
 
 - **Common Issues & Solutions**  
 
-   Many users report errors like:  
+   Many users report errors like: [vsomeip GitHub Issue #362](https://github.com/COVESA/vsomeip/issues/362)  
    ```
    basic_socket_ext_local.hpp:133:7: error: no matching function for call to 'boost::asio::detail::io_object_impl<boost::asio::detail::reactive_socket_service_ext_local<boost::asio::local::stream_protocol_ext, boost::asio::executor>::io_object_impl(boost::asio::io_context&)'
    ```  
