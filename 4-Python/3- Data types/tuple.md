@@ -49,6 +49,16 @@ Tuples **cannot** be changed after creation:
 t = (1, 2, 3)
 t[0] = 10  #  ERROR: 'tuple' object does not support item assignment
 ```
+### **Important Note**
+```python 
+t1=(1,2,4)
+t2=(3,5,7)
+# this will not change or overwrite the t1 it will delete it from the memorey and make anew one its name is ti 
+t1=t1+t2 
+print (t1) # (1,2,4,3,5,7)
+
+
+```
  **Workaround: Convert to a list, modify, then convert back to a tuple**:
 ```python
 t = (1, 2, 3)
