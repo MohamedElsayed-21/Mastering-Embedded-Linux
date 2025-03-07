@@ -56,7 +56,7 @@ To view file contents, use:
 #### Commands:
 
 - `cat <file>` : Display entire file contents.
-- `less <file>` : View file page by page (allows scrolling up/down).
+- `less <file>` : View file page by page (allows scrolling up/down and searching).
 - `more <file>` : Similar to `less`, but only allows scrolling forward.
 - `nano <file>` : Open file in Nano text editor (simple interface).
 - `vi <file>` : Open file in Vi editor (powerful but complex).
