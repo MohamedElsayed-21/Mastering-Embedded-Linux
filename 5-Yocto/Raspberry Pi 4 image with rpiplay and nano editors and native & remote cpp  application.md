@@ -36,7 +36,7 @@
     * Uses sysvinit as the init system.
 ---
 ## **Yocto Project: A Comprehensive Guide**
-### **1. What is Yocto?**
+### **What is Yocto?**
 
 The **Yocto Project** is an open-source collaboration project that provides templates, tools, and methods to help you create custom Linux-based systems for embedded products, regardless of the hardware architecture. It’s widely used in IoT, industrial automation, and other embedded systems.
 
@@ -89,7 +89,7 @@ The **Yocto Project** is an open-source collaboration project that provides temp
 
 
 
-### **2. Setting Up the Environment**
+### **1. Setting Up the Environment**
 
 To successfully build a Yocto-based image for the Raspberry Pi 4, follow these steps to set up your development environment.
 
@@ -116,8 +116,7 @@ locale --all-locales | grep en_US.utf8
 
 ### **2. Download and Configure Poky**
 
-Poky is the reference build system for Yocto. To obtain the Poky repository and switch to the desired branch:
-[exploring the poky direcotry](https://docs.yoctoproject.org/4.0.25/ref-manual/structure.html#source-directory-structure) 
+Poky is the reference build system for Yocto. To obtain the Poky repository and switch to the desired branch:   [exploring the poky direcotry](https://docs.yoctoproject.org/4.0.25/ref-manual/structure.html#source-directory-structure) 
 
 ```bash
 git clone https://github.com/yoctoproject/poky.git
@@ -128,26 +127,13 @@ git switch kirkstone
 
 ##### LTS releases get **2+ years of support**, while standard releases last ~1 year. Newer versions include updated **kernels, toolchains, and libraries**, while older ones receive security fixes. If you need stability, use an **LTS release**; for the latest features, go with the newest version.
 ---
+### 3. **Initialize the Build Environment**:
+   - Run the following command to set up the build environment:
+      ```bash
+     source poky/oe-init-build-env build-raspberrypi4
+      ```
+   - This creates a `build` directory and sets up the necessary environment variables.[exploring the build direcotry](https://docs.yoctoproject.org/4.0.25/ref-manual/structure.html#the-build-directory-build) 
 
-### **3. Define the Directory Structure**
-
-For better organization and to avoid modifying the Poky source directly, the following directory structure is used:
-
-```
-yocto
-├── build-raspberrypi4    # Build directory specific to Raspberry Pi 4
-├── downloads             # Shared directory for downloaded source files
-├── images                # Output directory for generated images
-├── layers                # Custom layers and additional Yocto layers
-├── poky                  # Poky source directory (unmodified)
-```
-
-##### **Why This Structure?**
-
-- Keeping the `poky` directory separate ensures that upstream changes can be pulled without conflicts.
-- The `downloads` directory is shared, preventing redundant downloads when building multiple images.
-- Custom layers and meta-layers are placed in `layers`, making it easier to manage and integrate external components.
-- Output images are stored in `images`, simplifying access to build artifacts.
 
 ---
 
@@ -176,13 +162,28 @@ By following these steps, your Yocto environment is set up efficiently and ready
 
 ---
 
-### 5. **Initialize the Build Environment**:
-   - Run the following command to set up the build environment:
-      ```bash
-     source poky/oe-init-build-env build-raspberrypi4
-      ```
-   - This creates a `build` directory and sets up the necessary environment variables.
 
+### **5. Define the Directory Structure**
+
+For better organization and to avoid modifying the Poky source directly, the following directory structure is used:
+
+```
+yocto
+├── build-raspberrypi4    # Build directory specific to Raspberry Pi 4
+├── downloads             # Shared directory for downloaded source files
+├── images                # Output directory for generated images
+├── layers                # Custom layers and additional Yocto layers
+├── poky                  # Poky source directory (unmodified)
+```
+
+##### **Why This Structure?**
+
+- Keeping the `poky` directory separate ensures that upstream changes can be pulled without conflicts.
+- The `downloads` directory is shared, preventing redundant downloads when building multiple images.
+- Custom layers and meta-layers are placed in `layers`, making it easier to manage and integrate external components.
+- Output images are stored in `images`, simplifying access to build artifacts.
+
+--- 
 
 
 ### **6. Fetch and Add Layers**
@@ -225,7 +226,7 @@ By following these steps, your Yocto environment is set up efficiently and ready
    ${TOPDIR}/../layers/meta-qt5 \
 
    ```
-**Using `${TOPDIR}/..` in `bblayers.conf` makes pathsrelative** **to the build directory, providing key benefits:**
+**Using `${TOPDIR}/..` in `bblayers.conf` makes paths relative** **to the build directory, providing key benefits:**
 
 1. **Portability:** The setup works across different machines without modifying `bblayers.conf`.  
 2. **Reusability:** Multiple build directories (e.g., for different targets) can share the same layers.  
@@ -234,6 +235,7 @@ By following these steps, your Yocto environment is set up efficiently and ready
 
 
 --- 
+
 ### **7. Create a Custom Software Layer (`meta-IVI`)**  
 
 To add custom features and configurations, we need to create a new Yocto layer.  
@@ -317,26 +319,24 @@ Inside the new layer, navigate to its `conf/distro/` directory and create a new 
    DISTRO="infotainment"
    DISTRO_NAME="MOHAMED-infotainment"
    DISTRO_VERSION="1.0"
-
    MAINTAINER="mohamedelsayedhussein22@gmail.com"
-
    # SDK Information.
-   SDK_VENDOR = "-mohamedSDK"
+   SDK_VENDOR = "-mohamedSDK" # دي نرجسية مش اكتر :)
    SDK_VERSION = "${@d.getVar('DISTRO_VERSION').replace('snapshot-${METADATA_REVISION}', 'snapshot')}"
    SDK_VERSION[vardepvalue] = "${SDK_VERSION}"
-
    SDK_NAME = "${DISTRO}-${TCLIBC}-${SDKMACHINE}-${IMAGE_BASENAME}-${TUNE_PKGARCH}-${MACHINE}"
 
    # Installation path --> can be changed to ${HOME}-${DISTRO}-${SDK_VERSION}
    SDKPATHINSTALL = "/opt/${DISTRO}/${SDK_VERSION}" 
 
    INFOTAINMENT_DEFAULT_DISTRO_FEATURES = "largefile opengl ptest wayland multiarch vulkan x11 bluez5 qt5 "
-   # meta/conf/distro/include/default-distrovars.inc -->  DISTRO_FEATURES_DEFAULT ?= "acl alsa argp bluetooth debuginfod ext2 ipv4 ipv6 largefile pcmcia usbgadget usbhost wifi xattr nfs zeroconf pci 3g nfc x11 vfat seccomp"
+   # ${DISTRO_FEATURES_DEFAULT} exist in  meta/conf/distro/include/default-distrovars.inc -->  DISTRO_FEATURES_DEFAULT ?= "acl alsa argp bluetooth debuginfod ext2 ipv4 ipv6 largefile pcmcia usbgadget usbhost wifi xattr nfs zeroconf pci 3g nfc x11 vfat seccomp"
+   
    DISTRO_FEATURES ?= "${DISTRO_FEATURES_DEFAULT} \ 
                      ${INFOTAINMENT_DEFAULT_DISTRO_FEATURES} \
                      userland  pulseaudio   "
 
-   IMAGE_INSTALL:append=" qttools rpi-play "
+   IMAGE_INSTALL:append=" rpi-play "
 
    # add systemd as init-process 
    require conf/distro/include/systemd.inc
@@ -350,7 +350,6 @@ Inside the new layer, navigate to its `conf/distro/` directory and create a new 
 
    # add poky sanity bbclass
    INHERIT += "poky-sanity"
-
    ```
 - **Update `local.conf` to Use the infotainment Distribution**  
 Modify `build-raspberrypi4/conf/local.conf` and set ` DISTRO ?= "infotainment"`:  
@@ -467,25 +466,15 @@ Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`:
    ```ivi-test-image.bb
    require  recipes-core/images/rpi-test-image.bb
 
-   # if you use :append -you have to use it in conf only- you have to leave blank space after `"` and don't leave space before and after `=` .
-   #  vice versa in `+=`- in recipes you can use both options :append and += -  you will leave blank space before and after it and not necssary to leave one after `"`
+   inherit audio
+   inherit qt-features
+   inherit network-features
 
-   # inherit audio
-   # inherit qtfeatures
-   # this feature  alreadey existed in (rpi-test-image.bb --> rpi-base.inc so you don't need to add it again)
-   # MACHINE_FEATURES += "wifi bluetooth alsa"
+   # "wifi bluetooth alsa"  this MACHINE_FEATURES alreadey existed in (rpi-test-image.bb --> rpi-base.inc so you don't need to add it again)
 
-   IMAGE_INSTALL:append=" vsomeip nano c-helloworld cpp-helloworld appssl can-utils "
+   IMAGE_INSTALL:append=" vsomeip nano c-helloworld cpp-helloworld appssl can-utils scrcpy"
 
-   IMAGE_FEATURES += " ssh-server-dropbear debug-tweaks tools-debug "
-
-
-
-   # Set the root filesystem size
-   # IMAGE_ROOTFS_SIZE = "16384"
-   # To run custom commands after the root filesystem is created.
-   # ROOTFS_POSTPROCESS_COMMAND += "my_custom_script.sh"
-
+   IMAGE_FEATURES += "ssh-server-openssh debug-tweaks tools-debug x11 tools-sdk"
 
    ```
 
@@ -493,9 +482,7 @@ Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`:
 
 - **`require recipes-core/images/rpi-test-image.bb`**  
   - Inherits from `rpi-test-image.bb`, meaning it will have the same base configuration.  
-- **`IMAGE_FEATURES += " ssh-server-dropbear debug-tweaks tools-debug "`**  
-  - Adds features like SSH support (`dropbear`), debugging tweaks, and extra tools.  
-  🔗 [Image Features yocto documentaion](https://docs.yoctoproject.org/4.0.25/ref-manual/features.html#image-features)  
+- **`IMAGE_FEATURES`** 🔗 [Image Features yocto documentaion](https://docs.yoctoproject.org/4.0.25/ref-manual/features.html#image-features)  
 
 ---
 
@@ -707,6 +694,7 @@ For more details, visit: [Nano Releases](https://ftp.gnu.org/gnu/nano/).
    ```sh
       recipetool create -o nano_1.0.bb https://ftp.gnu.org/gnu/nano/nano-7.2.tar.xz
    ```
+- adjst this variable and it will work without any errors`FILES:${PN} += "${datadir}/*"`
 
 - Build Nano using Bitbake:
    ```bash
@@ -890,15 +878,30 @@ SRC_URI = "git://git.savannah.gnu.org/git/gnulib.git;protocol=https;branch=maste
    ```
 - **Edit the file and add the following content:**  
    ```audio.bbclass
-   IMAGE_INSTALL:append = " pavucontrol pulseaudio pulseaudio-module-dbus-protocol pulseaudio-server \
-                           pulseaudio-module-loopback pulseaudio-module-bluetooth-discover alsa-ucm-conf \
-                           pulseaudio-module-bluetooth-policy alsa-topology-conf alsa-state alsa-lib alsa-tools \
-                           pulseaudio-module-bluez5-device pulseaudio-module-bluez5-discover alsa-utils alsa-plugins bluez5 "
+  IMAGE_INSTALL:append = " \   
+         pavucontrol  pulseaudio-module-dbus-protocol pulseaudio-server pulseaudio-module-loopback \
+         pulseaudio-module-bluetooth-discover  pulseaudio-module-bluetooth-policy \
+         pulseaudio-module-bluez5-device  pulseaudio-module-bluez5-discover  \
+         alsa-ucm-conf  alsa-topology-conf  alsa-state alsa-lib alsa-tools alsa-utils alsa-plugins"
    ```
-Once **`inherit audio`** is added to a recipe, all these packages will be automatically included in the **final image**.  
+Once **`inherit audio`** is added to a recipe, all these packages will be automatically included in the **final image**. 
 
-####  Or simply add the `alsa` and `pulseaudio` into the `DISTRO_FEATURES`
+### **15. Steps to integrate `qt-features` in `meta-IVI` Layer**  
 
+#### **Steps to Create `qt-features.bbclass` in `meta-IVI` Layer**  
+- **Navigate to your layer directory & create the `classes/` directory if it doesn’t exist:**  
+   ```bash
+   cd layers/meta-IVI
+   mkdir -p classes
+   touch classes/qt-features.bbclass
+   ```
+- **Edit the file and add the following content:**  
+   ```qt-features.bbclass
+   IMAGE_INSTALL:append = " \   
+         qttools qtbase-examples qtquickcontrols qtbase-plugins qtquickcontrols2 \  
+         qtgraphicaleffects qtmultimedia qtserialbus qtquicktimeline qtvirtualkeyboard"
+   ```
+Once **`inherit qt-features`** is added to a recipe, all these packages will be automatically included in the **final image**.
 
 #### **`inc` vs. `bbclass` vs `require` in Yocto**  
 
@@ -939,10 +942,7 @@ The `require` directive in BitBake is used to **include the contents of another 
 ---
 
 
-### **15. rpiplay**
-
-
-###  Steps for **RPiPlay** Integration  
+### **16. Steps for **RPiPlay** Integration**
 
 - **Create the initial recipe**  
    ```bash
@@ -959,7 +959,9 @@ The `require` directive in BitBake is used to **include the contents of another 
 - **Add the missing layer (`meta-networking`)**  
    - Since `avahi` is in `meta-openembedded/meta-networking` , we **must add that layer** to `bblayers.conf`:
       ```bash
-      bitbake-layers layerindex-show-depends meta-networking # it shows that it needs (openembededdcore , meta-oe and meta-pyhthon)  
+      bitbake-layers layerindex-show-depends meta-networking 
+      # it  will show that it needs (openembededdcore , meta-oe and meta-pyhthon)  
+
       bitbake-layers add-layer ../layers/meta-openembedded/meta-python
       bitbake-layers add-layer ../layers/meta-openembedded/meta-networking
       ```
@@ -1038,7 +1040,7 @@ Since `ilclient` should come from `userland`, we need to **verify if it exists i
 Since the `RPiPlay` repo expects `ilclient` inside `/opt/vc`, we need to check:  
 
    ```bash
-   #  # the working ditectory of userland
+   #  # the ${D}image ditectory of userland
    cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/userland/20220323-r0/image"
    find . -name "*ilclient*"
    ```
@@ -1082,7 +1084,7 @@ When `bitbake` builds `rpi-play`, it pulls dependencies from the `sysroot` of it
 
       1. Navigate to the `rpi-play` source directory after unpacking:  
          ```bash
-         #  the path of working directory of the rpi-play
+         #  the path of source directory of the rpi-play
             cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/git/
          ```
       2. Modify `renders/CMakeLists.txt` to replace `/opt/vc` with `/usr/`.  
@@ -1236,7 +1238,7 @@ EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'
       ```
    - Verify that `ilclient` is now present in the `sysroot`:  
       ```bash
-         # the working ditectory of rpi-play 
+         # the recipe sysroot ditectory of rpi-play 
          find /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/recipe-sysroot/ -name "*ilclient*"
       ```
 
@@ -1270,7 +1272,7 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
 ---
 
 
-### **16. VSOMEIP Integration with Yocto (Kirkstone)**    
+### **17. VSOMEIP Integration with Yocto (Kirkstone)**    
 
 **VSOMEIP** is an open-source implementation of **SOME/IP (Scalable service-Oriented Middleware over IP)** used in automotive Ethernet-based communication. It enables service-oriented communication between ECUs (Electronic Control Units) following the **AUTOSAR** standard.  
 
@@ -1286,10 +1288,7 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
    Later versions cause the compilation to fail due to breaking changes in **Boost.Asio**.  so that you have to install [recipes-support (boost files)](https://github.com/COVESA/vsomeip/files/9394162/recipes-support.zip) in your layer and give it higher prority than the `meta`  
 
 - **Setting Up VSOMEIP in Yocto**  
-      Since **VSOMEIP** has dependencies and conflicts with some existing packages, it's essential to ensure the custom layer has a higher priority than **meta**. Modify `local.conf` or add to `layer.conf`:  
-      ```sh
-      BBFILE_PRIORITY_meta-IVI = "8"
-      ```  
+      Since **VSOMEIP** has dependencies and conflicts with some existing packages, it's essential to ensure the custom layer has a higher priority than **meta**. Modify the priority of `layer.conf`   by adjusting `BBFILE_PRIORITY_meta-IVI = "8"`  .
 
 - **VSOMEIP Recipe for Yocto (Kirkstone)**  
    
@@ -1325,10 +1324,77 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
       }
       ```  
 
+### 18. Creating a Yocto Recipe for Scrcpy (Android Mirroring )
+
+-  **Generate the Initial Recipe**
+   We start by creating a basic recipe using `recipetool`:
+   ```sh
+   recipetool create -o scrcpy_1.0.bb git://github.com/Genymobile/scrcpy.git
+   ```
+   This generates a base recipe with the necessary metadata.
+
+- **Edit the generated `scrcpy_1.0.bb`**
+   ```bitbake
+   SUMMARY = "Display and control your Android device."
+   HOMEPAGE = "https://github.com/Genymobile/scrcpy"
+
+   LICENSE = "Apache-2.0"
+   LIC_FILES_CHKSUM = "file://LICENSE;md5=968e58821ffcb172a8baa9bc799f0ad1"
+
+   SRC_URI = "git://github.com/Genymobile/scrcpy.git;protocol=https;branch=master;"
+   SRCREV = "baa10ed0a36ec775712be85f22d3db3f0a6e19f2"
+   S = "${WORKDIR}/git"
+
+   DEPENDS = "ffmpeg libsdl2 meson-native ninja-native cmake-native pkgconfig-native libusb1"
+
+   RDEPENDS:${PN} += "android-tools ffmpeg libsdl2 libusb1 "
+
+   inherit meson pkgconfig gettext
+
+   INHERIT += "strip"
+
+   EXTRA_OEMESON += " \
+   --buildtype=release \
+   -Db_lto=true \
+   -Dcompile_server=false \
+   -Dprebuilt_server=${WORKDIR}/scrcpy-server-${PV} \
+   "
+   do_package_qa[noexec]="1"
+   FILES:${PN} += "${datadir}/*"
+   ```
+- **NOTES**   
+   - **`DEPENDS`**: Includes build-time dependencies such as `meson`, `ninja`, and `pkgconfig`.
+        - **Expected Error:**
+            ```
+            ffmpeg was skipped: because it has a restricted license 'commercial'. Which is not listed in LICENSE_FLAGS_ACCEPTED
+            ERROR: Required build target 'scrcpy' has no buildable providers.
+            Missing or unbuildable dependency chain was: ['scrcpy', 'ffmpeg']
+            ```
+        - **Solution:** Add this to your `local.conf`:
+            ```bitbake
+            LICENSE_FLAGS_ACCEPTED = "commercial_ffmpeg"
+            ```
+       For More details: [Yocto Licensing](https://docs.yoctoproject.org/dev-manual/licenses.html#enabling-commercially-licensed-recipes)
+
+   - **`RDEPENDS`**: Lists runtime dependencies like `android-tools` and `ffmpeg`.
+   - Use `inherit` This ensures the build system correctly processes dependencies and configurations.
+   - Configure `EXTRA_OEMESON`
+      - **`--buildtype=release`**: Ensures an optimized release build.
+      - **`-Db_lto=true`**: Enables Link-Time Optimization for better performance.
+      - **`-Dcompile_server=false`**: Disables compiling the Scrcpy server.
+      - **`-Dprebuilt_server=${WORKDIR}/scrcpy-server-${PV}`**: Uses a prebuilt server binary.
+   - **`FILES:${PN}`**: Ensures proper files are included in the final package.
+      - **Expected Error if not use FILES :**
+         ```
+         /usr/share/somefiles
+         Please set FILES such that these items are packaged. Alternatively if they are unneeded, avoid installing them or delete them within do_install.
+         scrcpy: 11 installed and not shipped files. [installed-vs-shipped]
+         ```
+         **Solution:** Verify the required paths and explicitly include missing files in `FILES:${PN}`.
 
 ---
 
-### **17. Building an Image**
+### **19. Building an Image**
    - To build ivi-test-image for raspberry pi , run: 
          ```
          bitbake ivi-test-image
@@ -1337,7 +1403,7 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
 
 ---
 
-### **18.create image `wic` Writable Image Creator (Yocto Tool)**  
+### **20.create image `wic` Writable Image Creator (Yocto Tool)**  
 `wic` (Writable Image Creator) is a Yocto tool used to generate bootable disk images with custom partitioning, making it suitable for SD cards, USB drives, and hard disks. It seamlessly integrates with the Yocto build system to automate image creation and supports multiple storage devices, making it essential for embedded systems.  
 for more details :  [wic Yocto Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/wic.html)   
 
@@ -1346,12 +1412,12 @@ for more details :  [wic Yocto Documentation](https://docs.yoctoproject.org/4.0.
 |----------------------|-----------------------------------|----------------------------------------------------------|
 | `wic create <image>` | Generate a bootable `.wic` image. | `wic create sdimage-raspberrypi -e ivi-test-image `      |
 
-### **19. flashing the image on sd card** 
+### **21. flashing the image on sd card** 
 ```bash 
 sudo dd if=./sdimage-raspberrypi-202503011435-mmcblk0.direct of=/dev/mmcblk0 status=progress
 ```
 
-### **20. Enabling Video Output on Raspberry Pi 4**  
+### **22. Enabling Video Output on Raspberry Pi 4**  
 
 After booting into the image and testing everything, **RPiPlay wasn't displaying anything on the Raspberry Pi 4**, even though it worked on other platforms.  
 
@@ -1367,14 +1433,13 @@ After booting into the image and testing everything, **RPiPlay wasn't displaying
       dtoverlay=vc4-fkms-v3d
       max_framebuffers=2
       ```
-       **Why does this work?**  
-         - `vc4-fkms-v3d` enables the **Fake KMS (FKMS) driver**, allowing OpenGL acceleration while maintaining compatibility with legacy display stacks.  
-         - `max_framebuffers=2` ensures enough framebuffers are available for smooth rendering.  
+      - `vc4-fkms-v3d` enables the **Fake KMS (FKMS) driver**, allowing OpenGL acceleration while maintaining compatibility with legacy display stacks.  
+      - `max_framebuffers=2` ensures enough framebuffers are available for smooth rendering.  
 
    
    2.  **Reboot the system**: 
             ```
-            sudo reboot
+            reboot
             ```
    3. **Run RPiPlay again**, and now video output should work properly!
 
