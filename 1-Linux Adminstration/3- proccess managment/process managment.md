@@ -2,31 +2,47 @@
 
 ## What is a Process?
 
-A process is an instance of a running program. It consists of executable code, data, and system resources. Processes can be created, managed, and terminated based on system and user requirements.
+- A process is an instance of a running program. It consists of executable code, data, and system resources. Processes can be created, managed, and terminated based on system and user requirements.
+- A process is an abstract entity defined by the kernel, which allocates system resources to execute a program.
 
-## Process Identifiers
+## What is a Program ?
+**program** is a file containing information on how to create a process at runtime.  
 
-- **PID (Process ID)**: A unique identifier assigned to each process.
-- **PPID (Parent Process ID)**: The PID of the parent process that spawned the current process.
-- **PGID (Process Group ID)**: Identifies a group of related processes.
-- **SID (Session ID)**: Identifies a session, which is a collection of process groups.
+**Contents of a program file:**  
+- **Binary format identification:** Specifies the format of the executable file, enabling the kernel to interpret it (e.g., ELF in modern UNIX/Linux).  
+- **Machine-language instructions:** Encode the program’s algorithm.  
+- **Program entry-point address:** Indicates where execution should start.  
+- **Data:** Includes initial variable values and constants (e.g., strings).  
+- **Symbol and relocation tables:** Describe function and variable locations, used for debugging and dynamic linking.  
+- **Shared-library and dynamic-linking information:** Lists required shared libraries and the dynamic linker.  
+- **Other information:** Additional details necessary for constructing a process.
 
-## Process Lifecycle
+#### A single **program** can be used to create multiple **processes**, meaning many processes can run the same program.  
 
-1. **Process Creation**: A process is created using system calls such as `fork()`, `exec()`, or `clone()`.
-2. **Process Execution**: The process runs and executes its assigned task.
-3. **Process Termination**: A process can terminate normally, be killed by a signal, or crash due to an error.
-4. **Process Cleanup**: The kernel releases resources and removes process entries from the process table.
+### From the **kernel’s perspective**, a process consists of:  
+- **User-space memory** containing program code and variables.  
+- **Kernel data structures** that store process-related information,
+In the kernel there is a data structure called task_struct defined in [sched.h](https://elixir.bootlin.com/linux/v6.13.6/source/include/linux/sched.h#L661) that forms the basis of implementing processes and threads alike. This data structure captures scheduling-related information, identifiers  including:  
+  - Process **IDs**  
+    - **PID (Process ID)**: A unique identifier assigned to each process.
+      **Notes:** 
+       - There is no fixed relationship between a program and its PID (except for system processes like init with PID 1).
+       - When the PID counter reaches 32,767, it resets to 300 (instead of 1) to avoid conflicts with system processes.
+       - Adjustable PID Limit: In Linux 2.6 and later, the limit of 32,767 can be modified using /proc/sys/kernel/pid_max, supporting up to 4 million PIDs on 64-bit systems.
 
- **Fork & Exec** 
-- **fork()**: Creates a new child process by duplicating the parent process. The child gets a copy of the parent's memory and execution state.
-- **exec()**: Replaces the current process image with a new one, loading a different program into the same process space.
-
-
-**Process vs Thread**
-- **Process**: A separate instance of a program with its own memory space, So Processes require inter-process communication (IPC) to communicate with other  process.
-- **Thread**: A lightweight execution unit within a process, sharing memory with other threads in the same process , threads can communicate through shared memory.
-
+    - **PPID (Parent Process ID)**: The PID of the parent process that spawned the current process.
+      **Notes:** 
+        - The Parent Process ID (PPID) represents the hierarchical relationship between processes. Every process has a parent (except `init`).
+        - If a parent process terminates, its orphaned child process is adopted by `init` (`PID 1`).
+        - The parent of a process can be found in `/proc/PID/status` under the Ppid field.
+    - **PGID (Process Group ID)**: Identifies a group of related processes.
+    - **SID (Session ID)**: Identifies a session, which is a collection of process groups.
+  - **Virtual memory tables**  
+  - **Open file descriptors**  
+  - **Signal handling information**  
+  - **Resource usage and limits**  
+  - **Current working directory**  
+  - Other necessary details.
 
 ## Process States
 
@@ -41,48 +57,40 @@ A process is an instance of a running program. It consists of executable code, d
 | **< (High Priority)**         | Indicates a high-priority process.                                                   |
 | **N (Low Priority)**          | Indicates a low-priority process.                                                    |
 
+## Process Lifecycle
+
+1. **Process Creation**: A process is created using system calls such as `fork()`, `exec()`, or `clone()`.
+2. **Process Execution**: The process runs and executes its assigned task.
+3. **Process Termination**: A process can terminate normally, be killed by a signal, or crash due to an error.
+4. **Process Cleanup**: The kernel releases resources and removes process entries from the process table.
+
+![Linux process states](../Images/Linux%20process%20states%20.png)
+
 
 ## Process Types
+- **Interactive Process**: Started by a user and interacts with the user (e.g., a text editor or terminal session).
+- **Automated Process (Batch)**: Executed without user interaction, often scheduled using tools like `cron` or `at`.
+- **Daemon Process**: Runs in the background, handling tasks like logging, network requests, and system maintenance.
 
-1. **Interactive Process**: Started by a user and interacts with the user (e.g., a text editor or terminal session).
-2. **Automated Process (Batch)**: Executed without user interaction, often scheduled using tools like `cron` or `at`.
-3. **Daemon Process**: Runs in the background, handling tasks like logging, network requests, and system maintenance.
+### 1. Interactive Process
+it is a process that requires user input and provides immediate output. It runs in the foreground, interacting directly with the user through a terminal or GUI. Examples include command-line tools like `vim`, `nano`, and `top`. These processes can be paused (using `Ctrl + Z`), resumed (`fg`), or sent to the background (`bg`).
 
---- 
+### 2. Automatic (Scheduled) and Batch Jobs
+- **at**
+  - `at -f <job-to-run> <day> <hour>:<min>` → Schedules a job at a specific time.
+  - `atq` → Displays the list of scheduled jobs.
+  - `at -r <n>` or `atrm <n>` → Removes job number `n`.
 
-## Process Commands
-
-### Viewing Processes
-
-- `pstree` → Displays a tree of processes.
-- `pstree -p` → Shows processes with their IDs.
-- `jobs` → Lists active background jobs.
-- `ps aux` → Displays detailed information about all running processes.
-- `ps -ef` → Similar to `ps aux`, but with a different column format.
-
-### Controlling Processes
-
-- `Ctrl + Z` → Pauses the current process.
-- `fg` → Resumes a paused process in the foreground.
-- `bg` → Resumes a paused process in the background.
-- `kill %n` → Terminates a job with job number `n`.
-- `kill <pid>` → Sends `SIGTERM` to terminate a process.
-- `kill -9 <pid>` → Forcefully terminates a process using `SIGKILL`.
-
-### Automatic (Scheduled) and Batch Jobs
-**at**
-- `at -f <job-to-run> <day> <hour>:<min>` → Schedules a job at a specific time.
-- `atq` → Displays the list of scheduled jobs.
-- `at -r <n>` or `atrm <n>` → Removes job number `n`.
 **batch**
-- `batch <job-to-run>` → Runs a job when system load permits.
- **Cron Jobs**
-- `vi /etc/crontab` → Edits the system-wide crontab file.
-- `crontab -e` → Edits user-specific crontab file.
-- `crontab -l` → Displays the crontab file.
-- `crontab -r` → Removes the user’s crontab file.
+  - `batch <job-to-run>` → Runs a job when system load permits.
 
-### Crontab File Format
+ **Cron Jobs**
+  - `vi /etc/crontab` → Edits the system-wide crontab file.
+  - `crontab -e` → Edits user-specific crontab file.
+  - `crontab -l` → Displays the crontab file.
+  - `crontab -r` → Removes the user’s crontab file.
+
+#### Crontab File Format
 A crontab file consists of lines defining scheduled tasks. Each line follows this format:
 ```
 * * * * * command-to-be-executed
@@ -115,19 +123,17 @@ Special strings can also be used for predefined events:
   0 3 * * * /path/to/script.sh  # Runs a script every day at 3 AM
   ```
 
----
-
-## Daemon Processes
+### Daemon Processes
 
 A daemon is a background process that runs continuously without user interaction. It is commonly used for system services like logging, scheduling tasks, and network communication.
 
-### Characteristics of a Daemon Process
+#### Characteristics of a Daemon Process
 - Runs in the background.
 - Has no controlling terminal.
 - Typically started at boot time.
 - Detached from the parent shell.
 
-### Creating a Daemon Process
+#### Creating a Daemon Process
 A process can become a daemon by following these steps:
 1. **Fork the process** to create a child.
 2. **Exit the parent process** so that the child is orphaned and adopted by `init`.
@@ -135,33 +141,49 @@ A process can become a daemon by following these steps:
 4. **Change working directory** to avoid locking filesystems.
 5. **Close standard input/output/error** to prevent accidental interaction.
 
-### Managing Daemon Processes
+#### Managing Daemon Processes
 Depending on the init system, daemon management differs:
 
-#### System V Init (SysV)
-- Uses `/etc/init.d/` scripts for daemon control.
-- Commands include:
-  - `service <daemon> start|stop|restart|status`
-  - `chkconfig <daemon> on|off`
+-  **System V Init (SysV)**
+   - Uses `/etc/init.d/` scripts for daemon control.
+   - Commands include:
+     - `service <daemon> start|stop|restart|status`
+     - `chkconfig <daemon> on|off`
 
-#### systemd
-- Uses `.service` unit files for daemons.
-- Commands include:
-  - `systemctl start <daemon>`
-  - `systemctl stop <daemon>`
-  - `systemctl restart <daemon>`
-  - `systemctl enable <daemon>`
+- **systemd**
+  - Uses `.service` unit files for daemons.
+  - Commands include:
+    - `systemctl start <daemon>`
+    - `systemctl stop <daemon>`
+    - `systemctl restart <daemon>`
+    - `systemctl enable <daemon>`
 
 
 --- 
 
+## Process Commands
 
-## Monitoring Processes
+### Viewing Processes
+
+- `pstree` → Displays a tree of processes.
+- `pstree -p` → Shows processes with their IDs.
+- `jobs` → Lists active background jobs.
+- `ps aux` → Displays detailed information about all running processes.
+- `ps -ef` → Similar to `ps aux`, but with a different column format.
+
+### Controlling Processes
+
+- `Ctrl + Z` → Pauses the current process.
+- `fg` → Resumes a paused process in the foreground.
+- `bg` → Resumes a paused process in the background.
+- `kill %n` → Terminates a job with job number `n`.
+- `kill <pid>` → Sends `SIGTERM` to terminate a process.
+- `kill -9 <pid>` → Forcefully terminates a process using `SIGKILL`.
+
+
+### Monitoring ProcessesTools
 
 Monitoring processes is crucial for system administration, performance tuning, and troubleshooting. Linux provides various tools to monitor CPU usage, memory consumption, disk I/O, and process states.
-
-### Process Monitoring Tools
-
 1. **`top`**: Provides a dynamic real-time view of system processes, including CPU and memory usage.
 2. **`htop`**: An interactive process viewer with a more user-friendly interface than `top`.
 3. **`ps`**: Lists running processes with various filtering and formatting options.
@@ -189,56 +211,3 @@ Monitoring processes is crucial for system administration, performance tuning, a
    - `ps -H` → Displays process threads.
 
 By using these tools and commands, administrators can effectively monitor and manage processes to optimize system performance and troubleshoot issues.
-
----
-
-
-## Signals & Process Control
-
-### What is a Signal?
-
-A signal is a notification sent to a process to indicate an event. Signals can be categorized into two types:
-
-#### Termination Signals
-
-| Signal    | Number | Description                                                    |
-| --------- | ------ | -------------------------------------------------------------- |
-| `SIGTERM` | 15     | Gracefully terminates a process (default for `kill`).          |
-| `SIGKILL` | 9      | Forcefully terminates a process (cannot be ignored or caught). |
-| `SIGINT`  | 2      | Interrupts a process, typically sent by `Ctrl+C`.              |
-| `SIGHUP`  | 1      | Hangup signal, often used to restart daemons.                  |
-
-#### Control & Debugging Signals
-
-| Signal    | Number | Description                                                           |
-| --------- | ------ | --------------------------------------------------------------------- |
-| `SIGSTOP` | 19     | Suspends a process (equivalent to `Ctrl+Z`).                          |
-| `SIGCONT` | 18     | Resumes a suspended process (`fg` or `bg`).                           |
-| `SIGTSTP` | 20     | Stops a process from the terminal (`Ctrl+Z`).                         |
-| `SIGUSR1` | 10     | User-defined signal for custom handling.                              |
-| `SIGUSR2` | 12     | Another user-defined signal.                                          |
-| `SIGSEGV` | 11     | Segmentation fault, occurs when a process accesses restricted memory. |
-| `SIGALRM` | 14     | Timer signal used for scheduling tasks.                               |
-| `SIGCHLD` | 17     | Sent to a parent when a child process terminates.                     |
-
-### Signal Commands
-
-- `kill -l` → Lists all signals.
-- `kill <pid>` → Sends `SIGTERM (15)` to terminate a process.
-- `kill -<signalNumber> <pid>` → Sends a specific signal.
-- `killall <command>` → Sends a signal to all instances of a command.
-- `pkill -u <username>` → Sends `SIGTERM` to all processes owned by a user.
-- `trap '<command>' <signal>` → Defines a custom signal handler in scripts.
-
-
-
-
-
-
-
-
-
-
-
-
-
