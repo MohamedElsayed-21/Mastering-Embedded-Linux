@@ -33,7 +33,8 @@ Executing a system call follows a series of steps:
 
 
 **This picture illustrating How System Calls Work**
-![Stepsin the execution of a system call](../Images/Steps%20in%20the%20execution%20of%20a%20system%20call.png)
+
+![Steps in the execution of a system call](../Images/Steps%20in%20the%20execution%20of%20a%20system%20call.png)
 
 
 --- 
