@@ -1,7 +1,6 @@
-## File Handling Internals
+# Understanding the File System in linux 
 
-### Understanding the File System
-
+## File system Internals
 A file system organizes and manages stored data. Each file consists of:
 
 1. **Block of Data**: The actual content stored on disk.
@@ -9,7 +8,7 @@ A file system organizes and manages stored data. Each file consists of:
    - **Inode**: Stores metadata such as file size, owner, permissions, timestamps, and data block pointers.
    - **Dentry (Directory Entry)**: Maps filenames to their respective inodes.
 
-### Hard Links vs. Soft (Symbolic) Links
+## Hard Links vs. Soft (Symbolic) Links
 
 - **Hard Links**:
   - Reference the same inode as the original file.
@@ -20,13 +19,13 @@ A file system organizes and manages stored data. Each file consists of:
   - Reference the filename instead of the inode.
   - If the original file is deleted, the symlink becomes broken.
 
-### Checking File Inodes and Links
+## Checking File Inodes and Links
 
 - `ls -li <file>` : Display inode number and links.
 - `stat <file>` : Show detailed file information including links.
 - `find . -samefile <file>` : Find all hard links to a specific file.
 
-### File Operations and Link Behavior
+## File Operations and Link Behavior
 
 - **Copying a File (`cp`)**:
   - Creates a new inode and new data blocks.
@@ -41,7 +40,7 @@ A file system organizes and manages stored data. Each file consists of:
   - If all hard links are removed, the file is deleted from disk.
   - Soft links to the deleted file become broken.
 
-#### Commands:
+### Commands:
 
 - `ls -i <file>` : Show inode number of files.
 - `stat <file>` : Display file metadata.
