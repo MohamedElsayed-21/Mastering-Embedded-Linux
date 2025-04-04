@@ -12,10 +12,10 @@
 * **Meta-qt5:** Qt5 layer for developing graphical applications.
 * **Community: VSOMEIP:** Middleware for inter-process communication.
     * **Collaboration Project:** Submit your layer on Open-Embedded as part of the Bullet AI project.
-* **RPI Play:** For screen mirroring.
+* **RPI Play:** For Iphone screen mirroring.
+* **Scrcpy:** For andriod screen mirroring.
 * **Audio:** Support for audio playback and recording.
-* **Native Hello Bullet Application:** A sample application for testing.
-* **Community: Layer for Observability:** A custom layer for monitoring and observability.
+* **Native Hello Bullet Application:** A sample remote and local application for testing.
 
 **Image:**
 
@@ -35,60 +35,6 @@
     * Excludes Meta-qt5.
     * Uses sysvinit as the init system.
 ---
-## **Yocto Project: A Comprehensive Guide**
-### **What is Yocto?**
-
-The **Yocto Project** is an open-source collaboration project that provides templates, tools, and methods to help you create custom Linux-based systems for embedded products, regardless of the hardware architecture. It’s widely used in IoT, industrial automation, and other embedded systems.
-
----
-
-#### **Core Concepts**
-- **BitBake**
-   - **BitBake** is the build engine used by Yocto.
-   - It reads **recipes** (instructions for building packages) and executes tasks like fetching source code, compiling, and packaging.
-   - BitBake is highly customizable and supports parallel builds.
-
-   - **BitBake Workflow:**  
-
-      1. **Create `bitbake.lock`** → Ensures only one instance of BitBake runs at a time to prevent conflicts.  
-      2. **Read `build/conf/bblayers.conf`** → Defines which layers (e.g., meta-openembedded, meta-yocto) are included in the build.  
-      3. **Read `build/conf/local.conf`** → Contains user-specific configurations like `MACHINE`, `DISTRO`, `IMAGE_FSTYPES`, etc.  
-      4. **Read `meta/conf/layer.conf`** → Defines how BitBake should handle each layer, including priority and dependencies.  
-      5. **Read `meta/conf/bitbake.conf`** → Core configuration file that sets global variables and paths for the build system.  
-      6. **Read `classes/base.bbclass`** → Provides common build functions and settings shared across multiple recipes.  
-      7. **Parse `core-image-minimal.bb`** → This is the main recipe for building a minimal image, specifying dependencies and tasks.  
-      8. **Execute Tasks (`do_fetch` → `do_unpack` → `do_patch` → `do_configure` → `do_compile` → `do_install` → `do_package` → `do_rootfs` → `do_deploy`)** → Runs each task step-by-step to build the image and generate output files.  
-      9. **Remove `bitbake.lock`** → Signals that the build process is complete, allowing future builds to start.
-      - run this command  to see the workflow of bitbake 
-         ``` bash 
-         strace -e trace=openat -f bitbake core-image-minimal |& grep -E ~/Documents/Mastering_Embedded_Linux/5-Yocto/poky/qemu-build | grep -v cache
-         ```
-
-- **OpenEmbedded (OE)** is a build framework for creating customized Linux distributions for embedded systems. It provides a flexible, cross-compilation environment with package management, dependency handling, and build automation.
-
-- **Poky** is the reference distribution of the **Yocto Project**. It serves as a build tool and minimal embedded Linux distribution, integrating **BitBake** and **OpenEmbedded** metadata.  
-**Poky = OpenEmbedded Core + BitBake + Additional Metadata**  
-   - **OpenEmbedded Core (OE-Core)** → Provides base recipes and classes.  
-   - **BitBake** → The build engine.  
-   - **Additional Metadata (meta-poky, meta-yocto, etc.)** → Adds configurations and customizations.  
-
-- **Layers**
-   - **Layers** are directories that contain related recipes, configurations, and files.
-   - Layers allow you to modularize your build system. For example:
-   - `meta`: Core layer provided by Yocto.
-   - `meta-qt5`: Layer for Qt5 support.
-   - You can add or remove layers depending on your project requirements.
-
-- **Recipes**
-   - **Recipes** (`.bb` files) contain instructions for building a specific package or component.
-   - A recipe typically includes:
-   - Source code location (e.g., Git repository or tarball).
-   - Dependencies (other packages required for building).
-   - Build instructions (e.g., `configure`, `make`, `install`).
-
-
-
-
 ### **1. Setting Up the Environment**
 
 To successfully build a Yocto-based image for the Raspberry Pi 4, follow these steps to set up your development environment.
@@ -123,9 +69,7 @@ git clone https://github.com/yoctoproject/poky.git
 cd poky
 git switch kirkstone
 ```
-##### Yocto has multiple releases to ensure stability, introduce new features, and support evolving hardware. It follows a **6-month release cycle**, with some versions being **LTS (Long-Term Support)** for production use (e.g., **Dunfell, Kirkstone**).  
 
-##### LTS releases get **2+ years of support**, while standard releases last ~1 year. Newer versions include updated **kernels, toolchains, and libraries**, while older ones receive security fixes. If you need stability, use an **LTS release**; for the latest features, go with the newest version.
 ---
 ### 3. **Initialize the Build Environment**:
    - Run the following command to set up the build environment:
@@ -133,7 +77,6 @@ git switch kirkstone
      source poky/oe-init-build-env build-raspberrypi4
       ```
    - This creates a `build` directory and sets up the necessary environment variables.[exploring the build direcotry](https://docs.yoctoproject.org/4.0.25/ref-manual/structure.html#the-build-directory-build) 
-
 
 ---
 
@@ -211,12 +154,12 @@ yocto
    bitbake-layers add-layer ../layers/meta-qt5
    ```
 
-These layers provide support for Raspberry Pi, additional open-source packages, and Qt5 for graphical applications.
+These layers provide support for Raspberry Pi 🔗 [meta-raspberrypi Documentation](https://meta-raspberrypi.readthedocs.io/en/latest/)  , additional open-source packages, and Qt5 for graphical applications.
 By following these steps, your Yocto environment is set up efficiently and ready for further customization.
 
 - **Edit `bblayers.conf` in the `build-raspberrypi4/conf/` directory :**
 
-   ```bblayers.conf
+   ```bitbake
    BBLAYERS ?= " \
    ${TOPDIR}/../poky/meta \
    ${TOPDIR}/../poky/meta-poky \
@@ -233,7 +176,6 @@ By following these steps, your Yocto environment is set up efficiently and ready
 3. **Yocto Best Practices:** Keeps `poky` and `layers` separate from `build`, following Yocto recommendations.  
 4. **Avoids Hardcoded Paths:** Prevents issues when moving the project or using different environments.  
 
-
 --- 
 
 ### **7. Create a Custom Software Layer (`meta-IVI`)**  
@@ -246,8 +188,7 @@ Run the following command inside the **build directory** to create a properly st
    ```bash
    bitbake-layers create-layer ../layers/meta-IVI
    ```
- 
-This command generates the necessary directories and metadata files required for a valid Yocto layer.  
+   This command generates the necessary directories and metadata files required for a valid Yocto layer.  
 
 - **Add the Layer to BitBake**  
 Since `bitbake-layers` only recognizes `bblayers.conf` when executed from inside the build directory, switch to it first and Then, add the newly created layer:  
@@ -263,7 +204,7 @@ After adding the layer, ensure `bblayers.conf` contains an entry for `meta-IVI`,
    BBLAYERS ?= " 
    ${TOPDIR}/../layers/meta-IVI \
    ```
-**Note:** Always run `bitbake-layers` commands from within the build directory to ensure proper detection of `bblayers.conf`.  
+   **Note:** Always run `bitbake-layers` commands from within the build directory to ensure proper detection of `bblayers.conf`.  
 
 
 ---
@@ -315,7 +256,7 @@ Inside the new layer, navigate to its `conf/distro/` directory and create a new 
 
 - **Now, open `infotainment.conf` and define your distribution settings:**  
 
-   ``` infotainment.conf
+   ```bitbake
    DISTRO="infotainment"
    DISTRO_NAME="MOHAMED-infotainment"
    DISTRO_VERSION="1.0"
@@ -356,57 +297,50 @@ Modify `build-raspberrypi4/conf/local.conf` and set ` DISTRO ?= "infotainment"`:
 
 - **Verify the Configuration**  
    - Run the following command to ensure the distribution is recognized:  
-      ```bash
+    ```bash
       bitbake -e | grep "^DISTRO="
-      ```
-   - If everything is correct, it should print:  
-      ```
-      DISTRO="infotainment"
-      ```
-
----
-
-#### **Enable systemd for Infotainment Distribution**  
-
-##### By default, **Poky uses `sysvinit`** as its **init manager** unless explicitly changed. To switch to **systemd** for the Infotainment distribution, we will include a configuration file.  
-
-For more details on init managers in Yocto, refer to the official documentation:  
-🔗 [Yocto Init Manager Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/init-manager.html#using-systemd)  
-
-- **Create the systemd Configuration File**  
-
-   Run the following command inside `meta-IVI`:  
-   ```bash
-   mkdir -p meta-IVI/conf/distro/include
-   touch meta-IVI/conf/distro/include/systemd.inc
+    ```
+   If everything is correct, it should print:  
    ```
-- **Define systemd as the Init Manager**  
-Edit `meta-IVI/conf/distro/include/systemd.inc` and add the following content:  
-
-   ```systemd.inc
-   # In the past, this variable was used to set systemd as the init manager.
-   # It existed in meta/conf/distro/include/init-manager-systemd.inc.
-
-   # Install systemd as the init manager
-   # DISTRO_FEATURES:append=" systemd "
-
-   # Select systemd as the init manager
-   # VIRTUAL-RUNTIME_init_manager="systemd"
-   # VIRTUAL-RUNTIME_initscripts="systemd-compat-units"
-
-   # Select busybox-mdev as the device manager
-   # VIRTUAL-RUNTIME_dev_manager="busybox-mdev"
-
-   # Just use this variable to set systemd
-   INIT_MANAGER = "systemd"
+   DISTRO="infotainment"
    ```
+   
+- **Enable systemd for Infotainment Distribution**  
 
-- **Include systemd in the Infotainment Distribution**  
-Modify `meta-IVI/conf/distro/infotainment.conf` and add:  
+   **By default, **Poky uses `sysvinit`** as its **init manager** unless explicitly changed. To switch to **systemd** for the Infotainment distribution, we will include a configuration file.For more details on init managers in Yocto, refer to the official documentation:** 🔗 [Yocto Init Manager Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/init-manager.html#using-systemd)  
 
-   ```infotainment.conf
-   require conf/distro/include/systemd.inc
-   ```
+   - **Create the systemd Configuration File**  
+
+      Run the following command inside `meta-IVI`:  
+      ```bash
+      mkdir -p meta-IVI/conf/distro/include
+      touch meta-IVI/conf/distro/include/systemd.inc
+      ```
+   - **Define systemd as the Init Manager**  
+   Edit `meta-IVI/conf/distro/include/systemd.inc` and add the following content:  
+
+      ```systemd.inc
+      # In the past, this variable was used to set systemd as the init manager.
+      # Select systemd as the init manager
+      # VIRTUAL-RUNTIME_init_manager="systemd"
+      # VIRTUAL-RUNTIME_initscripts="systemd-compat-units"
+      # Select busybox-mdev as the device manager
+      # VIRTUAL-RUNTIME_dev_manager="busybox-mdev"
+      # It existed in meta/conf/distro/include/init-manager-systemd.inc.
+
+      # Just use this variable to set systemd
+      INIT_MANAGER = "systemd"
+
+      # Install systemd as the init manager
+      # DISTRO_FEATURES:append=" systemd "
+      ```
+
+   - **Include systemd in the Infotainment Distribution**  
+   Modify `meta-IVI/conf/distro/infotainment.conf` and add:  
+
+      ```infotainment.conf
+      require conf/distro/include/systemd.inc
+      ```
 
 ---
 
@@ -420,9 +354,10 @@ Inside the new layer, navigate to its `conf/distro/` directory and create a new 
    mkdir -p  meta-audio-distro/conf/distro
    touch ./meta-audio-distro/conf/distro/audio.conf 
    ```
-- **Open `audio.conf` and define the **audio-specific settings**:  
 
-   ```audio.conf
+- **Open `audio.conf` and define the audio-specific settings**:  
+
+   ```bitbake
    require conf/distro/poky.conf
 
    DISTRO="audio"
@@ -434,11 +369,13 @@ Inside the new layer, navigate to its `conf/distro/` directory and create a new 
    DISTRO_FEATURES:remove = " largefile opengl ptest multiarch vulkan"
    DISTRO_FEATURES:append = " userland pulseaudio bluetooth wifi alsa"
    ```
-#### By default, **Poky uses `sysvinit`** as its **init manager** unless explicitly changed. so there is no addition steps here for fullfill the requirment.
+
+- **By default,** Poky uses **`sysvinit`** as its **init manager** unless explicitly changed. so there is no addition steps here for fullfill the requirment.
 
 
 - **Update `local.conf` to Use the New Audio Distribution if neededd**  
-Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`:  
+Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`.  
+
 - **Verify the Configuration**  
    - Check that the distribution is correctly set:  
       ```
@@ -481,105 +418,68 @@ Modify `build-raspberrypi4/conf/local.conf` and set `DISTRO ?= "audio"`:
  **Explanation of the Recipe**  
 
 - **`require recipes-core/images/rpi-test-image.bb`**  
-  - Inherits from `rpi-test-image.bb`, meaning it will have the same base configuration.  
+- Inherits from `rpi-test-image.bb`, meaning it will have the same base configuration.  
 - **`IMAGE_FEATURES`** 🔗 [Image Features yocto documentaion](https://docs.yoctoproject.org/4.0.25/ref-manual/features.html#image-features)  
 
 ---
 
-#### **Structure of an Image Recipe in Yocto**  
+### **11. Creating the First Recipe: for remote cpp hellowrold**  
 
-An **image recipe** in Yocto typically consists of the following components:  
-1. **Base Image** (`require` statement)  
-   - It defines the core structure of the image by inheriting from an existing base image.  
-   - Example: `core-image-base`, `core-image-minimal`, `rpi-test-image`, etc.  
-   
-2. **Image Features** (`IMAGE_FEATURES`)  
-   - Defines additional capabilities like SSH, debugging tools, or package management.  
-   - Example: `ssh-server-dropbear`, `debug-tweaks`, `tools-debug`.  
-
-3. **Package Installation** (`IMAGE_INSTALL`)  
-   - Specifies additional software packages to be included in the image.  
-   - Example: `nano`, `c-helloworld`, `cpp-helloworld`, `appssl`, `rpi-play`.  
-
-4. **Optional Inheritance (`inherit`)**  
-   - Some images inherit special classes that modify their behavior.  
-   - Example: `inherit core-image` or `inherit audio` (custom class).  
-
-For reference, check the base images available in Yocto:  
-🔗 [Yocto Base Images](https://docs.yoctoproject.org/4.0.25/ref-manual/images.html)  
-🔗 [meta-raspberrypi Documentation](https://meta-raspberrypi.readthedocs.io/en/latest/)  
-
-
-#### **Best Practices for Naming Yocto Recipes**  
-
-- **Use the software name** → Match the upstream package (e.g., `nano_6.4.bb`).  
-- **Follow `<package-name>_<version>.bb`** → Example: `mytool_1.0.bb`.  
-- **Lowercase only** → `nginx_1.22.0.bb`, `NGINX_1.22.0.bb`.  
-- **Prefix language-specific recipes** → `python3-requests_2.31.0.bb`, `perl-libxml_0.9.1.bb`.  
-- **don't use space** ` ` , use `-` instead of it .
----
-
-### **11. Creating the First Recipe: `cpp-helloworld`**  
-
-#### We are now moving on to creating our first custom recipe for a C++ application. Following the Yocto documentation, we will generate and modify the recipe to meet our project's requirements.  
-
-🔗 [Yocto Writing a New Recipe Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#writing-a-new-recipe)
+We are now moving on to creating our first custom recipe for a C++ application. Following the Yocto documentation, we will generate and modify the recipe to meet our project's requirements. in each recipe we will make we will stick into the steps exit in documentaion 🔗 [Yocto Writing a New Recipe Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#writing-a-new-recipe) .
 
 - **Generate the Initial Recipe file**  
 
-1. **Create a directory for C++ recipes**:  
-         ```bash
-         mkdir -p layers/meta-IVI/recipes-cpp/cpp-helloworld
-         ```
-      **why this structure necessary?**
-   - **Following Yocto's Standard Structure**  
+   1. **Create a directory for C++ recipes**:  
+            ```
+            mkdir -p layers/meta-IVI/recipes-cpp/cpp-helloworld
+            ```
+         **why this structure necessary?**
+      - **Following Yocto's Standard Structure**  
          - Each layer contains a `layer.conf` file, which defines how BitBake finds recipe files.  
          - Typically, `BBFILES` is set like this:  
-            ```layer.conf
+            ```bitbake
             BBFILES += "${LAYERDIR}/recipes-*/*/*.bb"
             ```
-         - This means Yocto expects `.bb` files to be inside a **subdirectory** within `recipes-*`.  
+             This means Yocto expects `.bb` files to be inside a **subdirectory** within `recipes-*`.  
 
 
    2. **Run the following command inside the `meta-IVI/recipes-cpp/cpp-helloworld` layer to create the base recipe:** 
-   🔗 [Recpitool Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#creating-the-base-recipe-using-recipetool-create)
+      🔗 [Recpitool Documentation](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#creating-the-base-recipe-using-recipetool-create)
 
-      ```bash
-      cd layers/meta-IVI/recipes-cpp/cpp-helloworld
-      recipetool create -o cpp-helloworld_1.0.bb https://github.com/embeddedlinuxworkshop/y_t1.git
-      ```
-
-       This will generate a folder named `cpp-helloworld_1.0.bb` with an initial recipe file.  
+         ```bash
+         cd layers/meta-IVI/recipes-cpp/cpp-helloworld
+         recipetool create -o cpp-helloworld_1.0.bb https://github.com/embeddedlinuxworkshop/y_t1.git
+         ```
+         This will generate a file named `cpp-helloworld_1.0.bb` with an initial recipe file.  
 
 
 - **Modify the Recipe**  
+After generating the recipe, edit the `cpp-helloworld_1.0.bb` file and apply the following changes:  
 
-   After generating the recipe, edit the `cpp-helloworld_1.0.bb` file and apply the following changes:  
+   ```bitbake
+   # Set the source directory inside the work directory
+   S = "${WORKDIR}/git"
 
-      ```cpp-helloworld_1.0.bb
-      # Set the source directory inside the work directory
-      S = "${WORKDIR}/git"
+   # Define the compilation steps
+   do_compile () {
+      ${CXX} ${S}/main.cpp -o cpp-app
+   }
 
-      # Define the compilation steps
-      do_compile () {
-         ${CXX} ${S}/main.cpp -o cpp-app
-      }
+   # Define installation steps
+   do_install () {
+      install -d ${D}${bindir}
+      install -m 0755 cpp-app ${D}${bindir}
+   }
 
-      # Define installation steps
-      do_install () {
-         install -d ${D}${bindir}
-         install -m 0755 cpp-app ${D}${bindir}
-      }
-
-      # Skip package QA checks to avoid errors
-      do_package_qa[noexec] = "1"
-      ```
+   # Skip package QA checks to avoid errors
+   do_package_qa[noexec] = "1"
+   ```
 
 ---
 
 ### **12. Writing a Recipe for a Local Application (`appssl`)**  
 
-this the cpp application , we want to integrate it in out image .
+this the cpp application , we want to integrate it in our image .
    ```cpp code 
 
    #include <iostream>
@@ -607,8 +507,11 @@ this the cpp application , we want to integrate it in out image .
    ```
 
 Since `appssl` is a **local application**, we must use `SRC_URI = "file://appssl.cpp"` to fetch the source code from our local machine instead of downloading it from an external repository.
-  [Yocto: Fetching Code in Recipes](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#fetching-code)
-  [SRC_URI](https://docs.yoctoproject.org/bitbake/2.10/bitbake-user-manual/bitbake-user-manual-ref-variables.html#term-SRC_URI)
+
+**check this pages from the documentation .**
+[Yocto: Fetching Code in Recipes](https://docs.yoctoproject.org/4.0.25/dev-manual/new-recipe.html#fetching-code) and 
+[SRC_URI](https://docs.yoctoproject.org/bitbake/2.10/bitbake-user-manual/bitbake-user-manual-ref-variables.html#term-SRC_URI)
+
 
 - **Folder Structure**  
    We follow the Yocto best practices by creating:  
@@ -624,9 +527,7 @@ Since `appssl` is a **local application**, we must use `SRC_URI = "file://appssl
       └── files
           └── appssl.cpp
    ```
-#### The `files/` directory or (  `{BPN}:` → `appssl/` or `${BP} - ${BPN}-${PV}` → `appssl_1.0` ) is necessary for BitBake to recognize and access local source files. 
-
-
+   **(The `files/` directory  or  `{BPN}:` → `appssl/` or `${BP} - ${BPN}-${PV}` → `appssl_1.0` ) is necessary for BitBake to recognize and access local source files.**
 
 
 - **Resolving Dependencies**  
@@ -638,9 +539,9 @@ To determine the correct flags for linking against OpenSSL, you can use:
    This helps find the necessary compiler and linker flags.
 
 
-#### **The Package  Recipe**  
+- **The Package  Recipe**  
 
-   ```appssl_1.0.bb
+   ```bitbake
    DOCUMENTATION = "appssl"
    SUMMARY = "this appssl app is a simple example of a C++ application with dependencies" 
 
@@ -669,12 +570,11 @@ To determine the correct flags for linking against OpenSSL, you can use:
 - **`${LDFLAGS}`** → Ensures correct linking flags for the build.
 - **`-lssl -lcrypto`** → Links against OpenSSL libraries.
 - **`${D}${bindir}`** → Installs the compiled binary into `/usr/bin/` inside the target filesystem.
-
-#### **Understanding `install` Command**  
-- The `install` command in Linux is used for copying and setting file permissions. To check its options, run:  `man install` 
-- In our case:
-   - `install -d` → Creates the destination directory.
-   - `install -m 0755` → Copies the file and sets permissions (`rwxr-xr-x`).
+- **Understanding `install` Command**  
+   - The `install` command in Linux is used for copying and setting file permissions. To check its options, run:  `man install` 
+   - In our case:
+      - `install -d` → Creates the destination directory.
+      - `install -m 0755` → Copies the file and sets permissions (`rwxr-xr-x`).
 
 ---
 
@@ -687,25 +587,25 @@ To determine the correct flags for linking against OpenSSL, you can use:
 For more details, visit: [Nano Releases](https://ftp.gnu.org/gnu/nano/).
 - Navigate to your layer's `recipes-editors` directory:
    ```bash
-      mkdir -p layers/meta-IVI/recipes-editors/nano
-      cd layers/meta-IVI/recipes-editors/nano
+   mkdir -p layers/meta-IVI/recipes-editors/nano
+   cd layers/meta-IVI/recipes-editors/nano
    ```
 - Create a recipe using `recipetool`:
-   ```sh
-      recipetool create -o nano_1.0.bb https://ftp.gnu.org/gnu/nano/nano-7.2.tar.xz
+   ```bash
+   recipetool create -o nano_1.0.bb https://ftp.gnu.org/gnu/nano/nano-7.2.tar.xz
    ```
 - adjst this variable and it will work without any errors`FILES:${PN} += "${datadir}/*"`
 
 - Build Nano using Bitbake:
    ```bash
-      bitbake nano
+   bitbake nano
    ```
 
----
 
 ### Method 2: Using the Official Git Repository (Nano 8.3)
+**This method is not recommended** becuse you have to specifiy certain version of any application you will download in your image .but i did it **for learning purposes.**
 
-For more details, visit: [Nano Git Repository](https://git.savannah.gnu.org/cgit/nano.git/tree/README.hacking).
+For more details about the nano, visit: [Nano Git Repository](https://git.savannah.gnu.org/cgit/nano.git/tree/README.hacking).
 
 - Install dependencies required for building Nano from source:
    ```bash
@@ -731,23 +631,24 @@ For more details, visit: [Nano Git Repository](https://git.savannah.gnu.org/cgit
    ```bash
    ./autogen.sh
    ```
-We performed these two steps separately instead of running `bitbake nano` directly because:  
+   We performed these two steps separately instead of running `bitbake nano` directly because:  
 
-1. **Auto-configuration Requirement:**  
-   - The source code from `git://git.savannah.gnu.org/nano.git` requires running `./autogen.sh` before `configure` can execute.  
-   - `bitbake nano` by default runs the `do_configure` task, which expects a `configure` script to exist. But since `nano` uses `autogen.sh` to generate this script, `do_configure` would fail if we ran `bitbake nano` immediately.  
+   1. **Auto-configuration Requirement:**  
+      - The source code from `git://git.savannah.gnu.org/nano.git` requires running `./autogen.sh` before `configure` can execute.  
+      - `bitbake nano` by default runs the `do_configure` task, which expects a `configure` script to exist. But since `nano` uses `autogen.sh` to generate this script, `do_configure` would fail if we ran `bitbake nano` immediately.  
 
-2. **Manual Execution of `autogen.sh`:**  
-   - After `bitbake -c unpack nano`, we navigate to the work directory and manually run `./autogen.sh` to generate the necessary `configure` script.  
-   - This ensures that the `do_configure` step in BitBake will succeed when we finally run `bitbake nano`.  
+   2. **Manual Execution of `autogen.sh`:**  
+      - After `bitbake -c unpack nano`, we navigate to the work directory and manually run `./autogen.sh` to generate the necessary `configure` script.  
+      - This ensures that the `do_configure` step in BitBake will succeed when we finally run `bitbake nano`.  
 
 
 - Build Nano:
    ```bash
    bitbake nano
    ```
- **Automate this steps**
-   **1. Patch `autogen.sh`**
+
+**Automate this steps by**
+1. **Patch `autogen.sh`**
 
    - The patch removes the Gnulib cloning logic from `autogen.sh`. Here's the patch:
    
@@ -787,7 +688,7 @@ We performed these two steps separately instead of running `bitbake nano` direct
       echo "Gnulib-tool..."
       ```
 
-   **2. Final Recipe for Nano**
+2. **Final Recipe for Nano**
    - Here’s the updated Yocto recipe that incorporates the patch and automates the build process:
       ```nano.bb
       SUMMARY = "GNU nano text editor"
@@ -851,93 +752,62 @@ We performed these two steps separately instead of running `bitbake nano` direct
 5. **`addtask`**:
    - Ensures `do_autogen` runs before `do_configure`.
 
-**Problem**
- The original `autogen.sh` script tries to clone Gnulib using a **private Git link**:
-```bash
-git clone <membername>@git.savannah.gnu.org:/srv/git/gnulib.git
-```
+**why we did patch file to the autogen?** 
+- The original `autogen.sh` script tries to clone Gnulib using a **private Git link**:
+
+   ```bash
+   git clone <membername>@git.savannah.gnu.org:/srv/git/gnulib.git
+   ```
+
 - This requires **SSH authentication**, which is not suitable for a Yocto build environment.
 
 then you have to replace the private link with a **public Git link**: [GNU Gnulib Git Repository](https://savannah.gnu.org/git/?group=gnulib)
 
-```bitbake
-SRC_URI = "git://git.savannah.gnu.org/git/gnulib.git;protocol=https;branch=master;name=gnulib;destsuffix=git/gnulib"
-```
+   ```bitbake
+   SRC_URI = "git://git.savannah.gnu.org/git/gnulib.git;protocol=https;branch=master;name=gnulib;destsuffix=git/gnulib"
+   ```
+
 - This public link (`https`) doesn’t require authentication and works seamlessly in Yocto. 
 
 ---
 
 ### **14.  Steps to integrate `audio` in `meta-IVI` Layer**  
  
-#### **Steps to Create `audio.bbclass` in `meta-IVI` Layer**  
-- **Navigate to your layer directory & **Create the `classes/` directory if it doesn’t exist::**  
-   ```bash
-   cd layers/meta-IVI
-   mkdir -p classes
-   touch classes/audio.bbclass
-   ```
-- **Edit the file and add the following content:**  
-   ```audio.bbclass
-  IMAGE_INSTALL:append = " \   
-         pavucontrol  pulseaudio-module-dbus-protocol pulseaudio-server pulseaudio-module-loopback \
-         pulseaudio-module-bluetooth-discover  pulseaudio-module-bluetooth-policy \
-         pulseaudio-module-bluez5-device  pulseaudio-module-bluez5-discover  \
-         alsa-ucm-conf  alsa-topology-conf  alsa-state alsa-lib alsa-tools alsa-utils alsa-plugins"
-   ```
-Once **`inherit audio`** is added to a recipe, all these packages will be automatically included in the **final image**. 
+-  **Steps to Create `audio.bbclass` in `meta-IVI` Layer**  
+   - Navigate to your layer directory & Create the `classes/` directory if it doesn’t exist : 
+      ```bash
+      cd layers/meta-IVI
+      mkdir -p classes
+      touch classes/audio.bbclass
+      ```
+   - Edit the file and add the following content:  
+      ```bitbake
+      IMAGE_INSTALL:append = " \   
+      pavucontrol  pulseaudio-module-dbus-protocol pulseaudio-server pulseaudio-module-loopback \
+      pulseaudio-module-bluetooth-discover  pulseaudio-module-bluetooth-policy \
+      pulseaudio-module-bluez5-device  pulseaudio-module-bluez5-discover  \
+      alsa-ucm-conf  alsa-topology-conf  alsa-state alsa-lib alsa-tools alsa-utils alsa-plugins"
+      ```
+- Once done, **`inherit audio`** is added to distro recipe, then all these packages will be automatically included in the **final image**. 
+
+---
 
 ### **15. Steps to integrate `qt-features` in `meta-IVI` Layer**  
 
-#### **Steps to Create `qt-features.bbclass` in `meta-IVI` Layer**  
-- **Navigate to your layer directory & create the `classes/` directory if it doesn’t exist:**  
-   ```bash
-   cd layers/meta-IVI
-   mkdir -p classes
-   touch classes/qt-features.bbclass
-   ```
-- **Edit the file and add the following content:**  
-   ```qt-features.bbclass
-   IMAGE_INSTALL:append = " \   
-         qttools qtbase-examples qtquickcontrols qtbase-plugins qtquickcontrols2 \  
-         qtgraphicaleffects qtmultimedia qtserialbus qtquicktimeline qtvirtualkeyboard"
-   ```
-Once **`inherit qt-features`** is added to a recipe, all these packages will be automatically included in the **final image**.
-
-#### **`inc` vs. `bbclass` vs `require` in Yocto**  
-
- **(Include File):**  
-- It is **included textually** in a recipe (`.bb`) during parsing, like a **copy-paste** operation.  
-- Any modification **does not directly affect** the recipes that included it unless you run **`bitbake -c clean <package>`** and rebuild.  
-- `include` is used to **insert the contents of another file** into the current recipe or configuration file.
-- The included file can be a `.inc` file, a `.bb` file, or any other file with valid BitBake syntax.
-- Use **`include`** when you want to reuse **configurations** or **variables** from another file, but it’s optional.
-- Used for **shared settings** across multiple recipes, but without the need for inheritance (`inherit`).  
-
- **(Class File):**  
-- It is **inherited** in recipes (`inherit audio`), and its content is **executed at build time**, not just included.  
-- Any modification **immediately affects all recipes** that inherit it, without needing a `clean` operation.  
-- Used when there is **common build logic**, such as `kernel.bbclass` ,`autotools`, `cmake` or `image.bbclass`.
-- `inherit` is used to **inherit classes** in BitBake.
-- Classes are files (`.bbclass`) that contain common functionality that can be reused across multiple recipes.
-
- **`require` in BitBake Recipes**  
-The `require` directive in BitBake is used to **include the contents of another file** into the current recipe **at parse time**. It is similar to copy-pasting the content of the required file directly into the current file.   
-- **Directly Includes Another File** → The contents of the required file are inserted into the recipe as if they were written there.  
-- **Used for Sharing Common Configurations** → Useful when multiple recipes need the same settings.  
-- **File Must Exist** → If the required file is missing, BitBake will throw an error.  
-
-
-**`inherit` is used to reuse **build logic**, **while `include` and `require` are used to reuse **configurations** or **variables**.
-
-
-
-#### **Table with BitBake's Perspective**  
-
-| Keyword   | Purpose                 | BitBake's Perspective               | Behavior if File/Class is Missing | Commonly Used For         |
-|-----------|-----------------------------------|----------------------------------|------------------------------|----------------------------|
-| `inherit` | Inherit functionality from a class (`.bbclass`).                       | Extends the recipe by executing functions from the class. | Error (class not found).          | Reusing build logic (e.g., `autotools`).  |
-| `include` | Insert the contents of another file (`.inc`, `.bb`, etc.).             | Parses the included file but does not enforce its presence. | Silent (no error).                | Reusing configurations or variables.       |
-| `require` | Insert the contents of another file, but raise an error if not found.  | Parses and strictly enforces the required file's presence. | Error (file not found).           | Enforcing the presence of critical files.  |
+- **Steps to Create `qt-features.bbclass` in `meta-IVI` Layer**  
+   - **Navigate to your layer directory & create the `classes/` directory if it doesn’t exist:**  
+      ```bash
+      cd layers/meta-IVI
+      mkdir -p classes
+      touch classes/qt-features.bbclass
+      ```
+   - **Edit the file and add the following content:**  
+      ```bitbake
+      IMAGE_INSTALL:append = " \   
+      qttools qtbase-examples qtquickcontrols qtbase-plugins qtquickcontrols2 \  
+      qtgraphicaleffects qtmultimedia qtserialbus qtquicktimeline qtvirtualkeyboard"
+      ```
+- Once done, **`inherit qt-features`** is added to distro recipe, then all these packages will be automatically included in the **final image**.
 
 ---
 
@@ -966,17 +836,15 @@ The `require` directive in BitBake is used to **include the contents of another 
       bitbake-layers add-layer ../layers/meta-openembedded/meta-networking
       ```
 
-Before applying a patch, let’s first **trigger the error** by running:  
-
-```bash
-bitbake rpi-play
-```
-
-**Expected Error:**
-```terminal output 
-CMake Error at renderers/CMakeLists.txt:43 (add_library):
-  No SOURCES given to target: ilclient
-```
+- Before applying a patch, let’s first **trigger the error** by running:  
+   ```bash
+   bitbake rpi-play
+   ```
+   **Expected Error:**
+   ```terminal output 
+   CMake Error at renderers/CMakeLists.txt:43 (add_library):
+   No SOURCES given to target: ilclient
+   ```
 
 
 #### **Debugging the Missing `ilclient` Library Issue**  
@@ -994,27 +862,27 @@ Since `ilclient` should come from `userland`, we need to **verify if it exists i
          bitbake -e rpi-play | grep "^WORKDIR="
       ```
    - This will output something like:  
-      ```bash
-         WORKDIR="/home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.2+gitAUTOINC+64d0341ed3-r0"
+      ```terminal
+      WORKDIR="/home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.2+gitAUTOINC+64d0341ed3-r0"
       ```
 
    - **Navigate to the sysroot**  
       ```bash
-         # sysroot of the rpi-play
-         cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.2+gitAUTOINC+64d0341ed3-r0/recipe-sysroot
+      # sysroot of the rpi-play
+      cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.2+gitAUTOINC+64d0341ed3-r0/recipe-sysroot
       ```
 
    - **Search for `ilclient`**  
       ```bash
          find . -name "*ilclient*"
       ```
-   **Expected Output:**  
-   - If `ilclient` **is present**, we should see something like:  
-      ```sh
-         ./usr/src/path/ilclient.h
-         ./usr/src/path/libilclient.so
-      ```
-   - If **no results** appear, that means `ilclient` is **missing**.  
+      **Expected Output:**  
+      - If `ilclient` **is present**, we should see something like:  
+         ```sh
+            ./usr/src/path/ilclient.h
+            ./usr/src/path/libilclient.so
+         ```
+      - If **no results** appear, that means `ilclient` is **missing**.  
 
 
 
@@ -1029,7 +897,7 @@ Since `ilclient` should come from `userland`, we need to **verify if it exists i
    ```
    - **`userland` is already listed!**  
 
-   - But let’s confirm it was actually built:  
+   then let’s confirm it was actually built:  
       ```bash
       bitbake -e userland | grep "^WORKDIR="
       ```
@@ -1037,119 +905,117 @@ Since `ilclient` should come from `userland`, we need to **verify if it exists i
    - If it’s missing, we need to `bitbake userland` separately.  
 
 - **Step 4: Manually Verify `/opt/vc` Inside `userland`**  
-Since the `RPiPlay` repo expects `ilclient` inside `/opt/vc`, we need to check:  
-
-   ```bash
-   #  # the ${D}image ditectory of userland
-   cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/userland/20220323-r0/image"
-   find . -name "*ilclient*"
-   ```
-   We see that `ilclient` **exists**, but in a different location:  
+  - Since the `RPiPlay` repo expects `ilclient` inside `/opt/vc`, we need to check:  
+      ```bash
+      # the ${D} is the image ditectory of userland
+      cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/userland/20220323-r0/image"
+      find . -name "*ilclient*"
+      ```
+   - We see that `ilclient` **exists**, but in a different location:  
       ``` terminal output 
       $ find . -name "*ilclient*"
       ./usr/src/hello_pi/libs/ilclient
       ./usr/src/hello_pi/libs/ilclient/ilclient.h
       ./usr/src/hello_pi/libs/ilclient/ilclient.c
       ```
-   This is **not** where `RPiPlay` expects it to be.  
+   - This is **not** where `RPiPlay` expects it to be.  
       - If `/opt/vc` **exists and contains `ilclient`**, we need to **correct the CMake paths**. 
       - If it doesn’t exist, then userland wasn’t built properly or needs extra install steps or it built correctly but it's install the output in other place `/usr/` insted of `/opt/vc` .
 
 **How does `bitbake` handle dependencies?**  
-When `bitbake` builds `rpi-play`, it pulls dependencies from the `sysroot` of its dependencies (like `userland`).
- But in this case, **`userland` installs `ilclient` locally inside its own `image/` directory, and not in the `sysroot`**, so `RPiPlay` can't find it.  
+When `bitbake` builds `rpi-play`, it pulls dependencies from the `sysroot` of its dependencies (like `userland`). But in this case, **`userland` installs `ilclient` locally inside its own `image/` directory, and not in the `sysroot`**, so `RPiPlay` can't find it.  
 
 
 - **Step 5: Possible Solutions and Why They Won't Work**  
-  - **Manually copying `ilclient`**  Copying files manually into `sysroot` is not a scalable solution and goes against Yocto's clean design. 
-   
-  - **The Proper Fix – Patching CMake + Adjusting `userland` Sysroot**  
-   - **Fix 1: Ensure `ilclient` is Available in the `sysroot`**  
-	Since `userland` installs `ilclient` **inside its own image directory but not in `sysroot`**, we need to tell Yocto to include `/usr/src/hello_pi/libs` in the `sysroot` of rpiplay.  
+   1. **Manually copying `ilclient`**  Copying files manually into `sysroot` is not a scalable solution and goes against Yocto's clean design. 
+   2. **The Proper Fix – Patching CMake + Adjusting `userland` Sysroot**  
+      - **Fix 1: Ensure `ilclient` is Available in the `sysroot`**  
+      Since `userland` installs `ilclient` **inside its own image directory but not in `sysroot`**, we need to tell Yocto to include `/usr/src/hello_pi/libs` in the `sysroot` of rpiplay.  
 
-      1.  Create a `userland.bbappend` file inside our meta-layer:  
-         
-      ```sh
-         mkdir -p meta-IVI/recipes-graphics/userland/
-         touch meta-IVI/recipes-graphics/userland/userland_git.bbappend
-      ```
-      2. Add the following line inside `userland_git.bbappend`:  
-
-      ```userland_git.bbappend
-      SYSROOT_DIRS:append="${prefix}/src"
-      ```
-      🔹 **Why?** This ensures that `/usr/src/hello_pi/libs` is **copied into the sysroot**, making `ilclient` available for `rpi-play`.  
-
-   - **Fix 2: Patch `CMakeLists.txt`**  Instead of `/opt/vc`, `CMakeLists.txt` should look in `/usr/src/hello_pi/libs`.  
-
-      1. Navigate to the `rpi-play` source directory after unpacking:  
-         ```bash
-         #  the path of source directory of the rpi-play
-            cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/git/
-         ```
-      2. Modify `renders/CMakeLists.txt` to replace `/opt/vc` with `/usr/`.  
-      3. Generate a patch i recommend to make the patch file inside the `devshell`:  [concepts of diff and patch in YouTube](https://youtu.be/-s13A9MPmGU?si=levSHq4tF5SXgctj)
-         ```patch
-            bitbake -c devshell rpi-play # it will open other terminal that simulate the target environments . 
-            # change each  `/opt/vc` you see with  `/usr/` insted of it .
-            git diff > 0001_include_dir.patch
-         ```
-         the patch file content if you cannot make it 
-         ```
-         diff --git a/renderers/CMakeLists.txt b/renderers/CMakeLists.txt
-         index e561250..915ba92 100755
-         --- a/renderers/CMakeLists.txt
-         +++ b/renderers/CMakeLists.txt
-         @@ -17,20 +17,20 @@ set( RENDERER_LINK_LIBS "" )
-         set( RENDERER_INCLUDE_DIRS "" )
-         
-         # Check for availability of OpenMAX libraries on Raspberry Pi
-         -find_library( BRCM_GLES_V2 brcmGLESv2 HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         -find_library( BRCM_EGL brcmEGL HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         -find_library( OPENMAXIL openmaxil HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         -find_library( BCM_HOST bcm_host HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         -find_library( VCOS vcos HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         -find_library( VCHIQ_ARM vchiq_arm HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
-         +find_library( BRCM_GLES_V2 brcmGLESv2 HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         +find_library( BRCM_EGL brcmEGL HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         +find_library( OPENMAXIL openmaxil HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         +find_library( BCM_HOST bcm_host HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         +find_library( VCOS vcos HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         +find_library( VCHIQ_ARM vchiq_arm HINTS ${CMAKE_SYSROOT}/usr/lib/ )
-         
-         if( BRCM_GLES_V2 AND BRCM_EGL AND OPENMAXIL AND BCM_HOST AND VCOS AND VCHIQ_ARM )
-            # We have OpenMAX libraries available! Use them!
-            message( STATUS "Found OpenMAX libraries for Raspberry Pi" )
-         -  include_directories( ${CMAKE_SYSROOT}/opt/vc/include/ 
-         -  	${CMAKE_SYSROOT}/opt/vc/include/interface/vcos/pthreads 
-         -  	${CMAKE_SYSROOT}/opt/vc/include/interface/vmcs_host/linux 
-         -  	${CMAKE_SYSROOT}/opt/vc/src/hello_pi/libs/ilclient )
-         +  include_directories( ${CMAKE_SYSROOT}/usr/include/ 
-         +  	${CMAKE_SYSROOT}/usr/include/interface/vcos/pthreads 
-         +  	${CMAKE_SYSROOT}/usr/include/interface/vmcs_host/linux 
-         +  	${CMAKE_SYSROOT}/usr/src/hello_pi/libs/ilclient )
-         
-            option(BUILD_SHARED_LIBS "" OFF)
-            add_subdirectory(fdk-aac EXCLUDE_FROM_ALL)
-         @@ -38,7 +38,7 @@ if( BRCM_GLES_V2 AND BRCM_EGL AND OPENMAXIL AND BCM_HOST AND VCOS AND VCHIQ_ARM
-         
-            set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX   -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi" )
+         1.  Create a `userland.bbappend` file inside our meta-layer:  
             
-         -  aux_source_directory( ${CMAKE_SYSROOT}/opt/vc/src/hello_pi/libs/ilclient/ ilclient_src )
-         +  aux_source_directory( ${CMAKE_SYSROOT}/usr/src/hello_pi/libs/ilclient/ ilclient_src )
-            set( DIR_SRCS ${ilclient_src} )
-            add_library( ilclient STATIC ${DIR_SRCS} )
+         ```sh
+            mkdir -p meta-IVI/recipes-graphics/userland/
+            touch meta-IVI/recipes-graphics/userland/userland_git.bbappend
          ```
-      4. Copy the patch to the recipe folder:  
-         ```bash
-         # copy the patch file to the directory of the recipe
-         cp 0001_include_dir.patch /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/meta-IVI/recipes-rpiplay/rpiplay/rpi-play
+         2. Add the following line inside `userland_git.bbappend`:  
+
+         ```userland_git.bbappend
+         SYSROOT_DIRS:append="${prefix}/src"
          ```
-      5. Add it to `SRC_URI` in `rpi-play_1.0.bb`:  
-         ```
-         SRC_URI = "git://github.com/FD-/RPiPlay.git;protocol=https;branch=master \
-         file://0001_include_dir.patch  "
-         ```
+         🔹 **Why?** This ensures that `/usr/src/hello_pi/libs` is **copied into the sysroot**, making `ilclient` available for `rpi-play`.  
+
+      - **Fix 2: Patch `CMakeLists.txt`**  Instead of `/opt/vc`, `CMakeLists.txt` should look in `/usr/src/hello_pi/libs`.  
+
+         1. Navigate to the `rpi-play` source directory after unpacking:  
+            ```bash
+            # this is the path of source directory of the rpi-play
+            cd /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/git/
+            ```
+         2. Generate a patch i recommend to make the patch file inside the `devshell`:  [concepts of diff and patch in YouTube](https://youtu.be/-s13A9MPmGU?si=levSHq4tF5SXgctj)
+
+         3. Modify `renders/CMakeLists.txt` to replace `/opt/vc` with `/usr/`.  
+            ```bash
+            bitbake -c devshell rpi-play # it will open other terminal that simulate the target environments . 
+            git diff > 0001_include_dir.patch
+            ```
+            
+         4. **the patch file content**
+            ```patch
+            diff --git a/renderers/CMakeLists.txt b/renderers/CMakeLists.txt
+            index e561250..915ba92 100755
+            --- a/renderers/CMakeLists.txt
+            +++ b/renderers/CMakeLists.txt
+            @@ -17,20 +17,20 @@ set( RENDERER_LINK_LIBS "" )
+            set( RENDERER_INCLUDE_DIRS "" )
+            
+            # Check for availability of OpenMAX libraries on Raspberry Pi
+            -find_library( BRCM_GLES_V2 brcmGLESv2 HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            -find_library( BRCM_EGL brcmEGL HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            -find_library( OPENMAXIL openmaxil HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            -find_library( BCM_HOST bcm_host HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            -find_library( VCOS vcos HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            -find_library( VCHIQ_ARM vchiq_arm HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
+            +find_library( BRCM_GLES_V2 brcmGLESv2 HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            +find_library( BRCM_EGL brcmEGL HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            +find_library( OPENMAXIL openmaxil HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            +find_library( BCM_HOST bcm_host HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            +find_library( VCOS vcos HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            +find_library( VCHIQ_ARM vchiq_arm HINTS ${CMAKE_SYSROOT}/usr/lib/ )
+            
+            if( BRCM_GLES_V2 AND BRCM_EGL AND OPENMAXIL AND BCM_HOST AND VCOS AND VCHIQ_ARM )
+               # We have OpenMAX libraries available! Use them!
+               message( STATUS "Found OpenMAX libraries for Raspberry Pi" )
+            -  include_directories( ${CMAKE_SYSROOT}/opt/vc/include/ 
+            -  	${CMAKE_SYSROOT}/opt/vc/include/interface/vcos/pthreads 
+            -  	${CMAKE_SYSROOT}/opt/vc/include/interface/vmcs_host/linux 
+            -  	${CMAKE_SYSROOT}/opt/vc/src/hello_pi/libs/ilclient )
+            +  include_directories( ${CMAKE_SYSROOT}/usr/include/ 
+            +  	${CMAKE_SYSROOT}/usr/include/interface/vcos/pthreads 
+            +  	${CMAKE_SYSROOT}/usr/include/interface/vmcs_host/linux 
+            +  	${CMAKE_SYSROOT}/usr/src/hello_pi/libs/ilclient )
+            
+               option(BUILD_SHARED_LIBS "" OFF)
+               add_subdirectory(fdk-aac EXCLUDE_FROM_ALL)
+            @@ -38,7 +38,7 @@ if( BRCM_GLES_V2 AND BRCM_EGL AND OPENMAXIL AND BCM_HOST AND VCOS AND VCHIQ_ARM
+            
+               set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX   -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi" )
+               
+            -  aux_source_directory( ${CMAKE_SYSROOT}/opt/vc/src/hello_pi/libs/ilclient/ ilclient_src )
+            +  aux_source_directory( ${CMAKE_SYSROOT}/usr/src/hello_pi/libs/ilclient/ ilclient_src )
+               set( DIR_SRCS ${ilclient_src} )
+               add_library( ilclient STATIC ${DIR_SRCS} )
+            ```
+         5. Copy the patch to the recipe folder:  
+            ```bash
+            # copy the patch file to the directory of the recipe
+            cp 0001_include_dir.patch /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/meta-IVI/recipes-rpiplay/rpiplay/rpi-play
+            ```
+         6. Add it to `SRC_URI` in `rpi-play_1.0.bb`:  
+            ```
+            SRC_URI = "git://github.com/FD-/RPiPlay.git;protocol=https;branch=master \
+            file://0001_include_dir.patch  "
+            ```
 
 - **Finally `rpi-play_1.0.bb` after modifications**  
 
@@ -1179,53 +1045,52 @@ When `bitbake` builds `rpi-play`, it pulls dependencies from the `sysroot` of it
       TARGET_LDFLAGS += "-Wl,--copy-dt-needed-entries"
       EXTRA_OEMAKE:append = 'LDFLAGS="${TARGET_LDFLAGS}"' 
    ```
-#### **`Depends` vs `RDEPENDS_${PN}`**
-**Runtime Libraries** are the shared libraries a program needs **while running**, whereas **Build-time (Development) Libraries** are required **only during compilation**. Build-time libraries (e.g., `libssl-dev`, `libplist-dev`) include header files (`.h`) and static libraries needed to compile software, while runtime libraries (e.g., `libssl`, `libplist`) contain shared objects (`.so`) that the program dynamically links to during execution.  
 
-For example, if a program uses OpenSSL, it requires `libssl-dev` at **build-time** to provide necessary headers, but at **runtime**, it only needs `libssl.so` to function properly. In Yocto, dependencies are managed accordingly: `DEPENDS` includes build-time packages, while `RDEPENDS_${PN}` ensures runtime dependencies are available in the final system.
+   **exaplanation :**
+   - These two lines pass `Wl,--copy-dt-needed-entries` to  modify the **linking behavior** in a Yocto recipe:  
+      ```rpi-play.bb
+      TARGET_LDFLAGS += "-Wl,--copy-dt-needed-entries"
+      EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'
+      ```
+      1. **`-Wl,--copy-dt-needed-entries`**  
+         - Ensures that **indirect shared library dependencies** are included in the final binary.  
+         - Without it, only directly linked libraries are included, which can cause **runtime errors** if an intermediate library is missing.  
 
-**Note:** How to determine the runtime dependencies of a package in **Yocto (Poky/ConTe Yocto variant)**?  
-You can run the following command:  
-   ```bash
-   $ readelf -d rpiplay | grep -i needed
-   # This will list all the shared libraries (`.so` files) required by the binary. Based on this output, you can decide which packages to include in the `RDEPENDS_${PN}` variable. 
+      2. **`EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'`**  
+         - Passes `TARGET_LDFLAGS` to `make`, ensuring the linker flag is applied during the build.  
 
-   # Example output:
-   0x00000001 (NEEDED)                     Shared library: [libplist-2.0.so.3]
-   0x00000001 (NEEDED)                     Shared library: [libcrypto.so.3]
-   0x00000001 (NEEDED)                     Shared library: [libdns_sd.so.1]
-   0x00000001 (NEEDED)                     Shared library: [libopenmaxil.so]
-   0x00000001 (NEEDED)                     Shared library: [libbcm_host.so]
-   0x00000001 (NEEDED)                     Shared library: [libvcos.so]
-   0x00000001 (NEEDED)                     Shared library: [libgstapp-1.0.so.0]
-   0x00000001 (NEEDED)                     Shared library: [libgstreamer-1.0.so.0]
-   0x00000001 (NEEDED)                     Shared library: [libgobject-2.0.so.0]
-   0x00000001 (NEEDED)                     Shared library: [libglib-2.0.so.0]
-   0x00000001 (NEEDED)                     Shared library: [libstdc++.so.6]
-   0x00000001 (NEEDED)                     Shared library: [libm.so.6]
-   0x00000001 (NEEDED)                     Shared library: [libgcc_s.so.1]
-   0x00000001 (NEEDED)                     Shared library: [libc.so.6]
-   0x00000001 (NEEDED)                     Shared library: [libvchostif.so]
-   ```
+   -  How to determine the runtime dependencies of any package?  
+      - You can run the following command:  
 
-#### *Example `RDEPENDS_${PN}`:*
-   ```rpi-play.bb
-   RDEPENDS_${PN} = "avahi libplist gstreamer1.0-plugins-base gstreamer1.0-plugins-good"
-   ```
-   This ensures that the necessary runtime dependencies are available when the package is installed.  
+         ```bash
+         $ readelf -d rpiplay | grep -i needed
+         ```
 
-**Note:**  These two lines modify the **linking behavior** in a Yocto recipe:  
-```rpi-play.bb
-TARGET_LDFLAGS += "-Wl,--copy-dt-needed-entries"
-EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'
-```
+      - This will list all the shared libraries (`.so` files) required by the binary. Based on this output, you can decide which packages to include in the `RDEPENDS_${PN}` variable. 
 
-1. **`-Wl,--copy-dt-needed-entries`**  
-   - Ensures that **indirect shared library dependencies** are included in the final binary.  
-   - Without it, only directly linked libraries are included, which can cause **runtime errors** if an intermediate library is missing.  
+         ```terminal output
+            0x00000001 (NEEDED)                     Shared library: [libplist-2.0.so.3]
+            0x00000001 (NEEDED)                     Shared library: [libcrypto.so.3]
+            0x00000001 (NEEDED)                     Shared library: [libdns_sd.so.1]
+            0x00000001 (NEEDED)                     Shared library: [libopenmaxil.so]
+            0x00000001 (NEEDED)                     Shared library: [libbcm_host.so]
+            0x00000001 (NEEDED)                     Shared library: [libvcos.so]
+            0x00000001 (NEEDED)                     Shared library: [libgstapp-1.0.so.0]
+            0x00000001 (NEEDED)                     Shared library: [libgstreamer-1.0.so.0]
+            0x00000001 (NEEDED)                     Shared library: [libgobject-2.0.so.0]
+            0x00000001 (NEEDED)                     Shared library: [libglib-2.0.so.0]
+            0x00000001 (NEEDED)                     Shared library: [libstdc++.so.6]
+            0x00000001 (NEEDED)                     Shared library: [libm.so.6]
+            0x00000001 (NEEDED)                     Shared library: [libgcc_s.so.1]
+            0x00000001 (NEEDED)                     Shared library: [libc.so.6]
+            0x00000001 (NEEDED)                     Shared library: [libvchostif.so]
+            ```
+   - **`RDEPENDS_${PN}`:**
+      ```rpi-play.bb
+      RDEPENDS_${PN} = "avahi libplist gstreamer1.0-plugins-base gstreamer1.0-plugins-good"
+      ```
+      This ensures that the necessary runtime dependencies are available when the package is installed.  
 
-2. **`EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'`**  
-   - Passes `TARGET_LDFLAGS` to `make`, ensuring the linker flag is applied during the build.  
 
 
 
@@ -1238,44 +1103,15 @@ EXTRA_OEMAKE:append = ' LDFLAGS="${TARGET_LDFLAGS}"'
       ```
    - Verify that `ilclient` is now present in the `sysroot`:  
       ```bash
-         # the recipe sysroot ditectory of rpi-play 
-         find /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/recipe-sysroot/ -name "*ilclient*"
+      # the recipe sysroot ditectory of rpi-play 
+      find /home/mohamed/Documents/Mastering_Embedded_Linux/5-Yocto/build-raspberrypi4/tmp-glibc/work/cortexa7t2hf-neon-vfpv4-oe-linux-gnueabi/rpi-play/1.0-r0/recipe-sysroot/ -name "*ilclient*"
       ```
 
-
 ---
-
-#### **Difference Between `bitbake -c clean`, `cleanall`, and `cleansstate`**  
-In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to clean up build artifacts, but they differ in **scope** and **what they remove**. Understanding these differences is important for managing your build environment effectively.
-
-- **`bitbake -c clean <recipe>`**  
-  → Deletes `WORKDIR` (temporary build files `tmp/work/`) but keeps downloads and sstate cache.  
-  
-- **`bitbake -c cleansstate <recipe>`**  
-  →  Deletes `WORKDIR` (`tmp/work/`) and shared state (`sstate-cache/`) cache but keeps downloads. Forces re-execution of tasks that use sstate (e.g., configure, compile).  
-  
-- **`bitbake -c cleanall <recipe>`**  
-  → Deletes `WORKDIR` (`tmp/work/` ), source downloads( `downloads/` ), and sstate cache( `sstate-cache/` ). Equivalent to a fresh start for that recipe.  
-
-
-
-#### **Comparison Table**
-
-| Command          | Removes Working Directory | Removes Shared State Cache | Removes Downloaded Sources | Scope                     |
-|------------------|---------------------------|----------------------------|----------------------------|---------------------------|
-| `clean`          | Yes                       | No                         | No                         | Recipe-specific           |
-| `cleansstate`    | Yes                       | Yes                        | No                         | Recipe-specific           |
-| `cleanall`       | Yes                       | Yes                        | Yes                        | Recipe-specific           |
-
-
-
----
-
 
 ### **17. VSOMEIP Integration with Yocto (Kirkstone)**    
 
 **VSOMEIP** is an open-source implementation of **SOME/IP (Scalable service-Oriented Middleware over IP)** used in automotive Ethernet-based communication. It enables service-oriented communication between ECUs (Electronic Control Units) following the **AUTOSAR** standard.  
-
 
 - **Common Issues & Solutions**  
 
@@ -1283,12 +1119,10 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
    ```
    basic_socket_ext_local.hpp:133:7: error: no matching function for call to 'boost::asio::detail::io_object_impl<boost::asio::detail::reactive_socket_service_ext_local<boost::asio::local::stream_protocol_ext, boost::asio::executor>::io_object_impl(boost::asio::io_context&)'
    ```  
-   This typically occurs due to **incompatibility between VSOMEIP and Boost versions**.  
-   The best working **Boost version** for **VSOMEIP** on **Yocto Kirkstone** is:  `  Boost 1.71`
-   Later versions cause the compilation to fail due to breaking changes in **Boost.Asio**.  so that you have to install [recipes-support (boost files)](https://github.com/COVESA/vsomeip/files/9394162/recipes-support.zip) in your layer and give it higher prority than the `meta`  
+   This typically occurs due to **incompatibility between VSOMEIP and Boost versions**. The best working **Boost version** for **VSOMEIP** on **Yocto Kirkstone** is:  `Boost 1.71` Later versions cause the compilation to fail due to breaking changes in **Boost.Asio**.  so that you have to install [recipes-support (boost files)](https://github.com/COVESA/vsomeip/files/9394162/recipes-support.zip) in your layer and give it higher prority than the `meta`  
 
 - **Setting Up VSOMEIP in Yocto**  
-      Since **VSOMEIP** has dependencies and conflicts with some existing packages, it's essential to ensure the custom layer has a higher priority than **meta**. Modify the priority of `layer.conf`   by adjusting `BBFILE_PRIORITY_meta-IVI = "8"`  .
+   Since **VSOMEIP** has dependencies and conflicts with some existing packages, it's essential to ensure the custom layer has a higher priority than **meta**. Modify the priority of `layer.conf`   by adjusting `BBFILE_PRIORITY_meta-IVI = "8"`  .
 
 - **VSOMEIP Recipe for Yocto (Kirkstone)**  
    
@@ -1362,20 +1196,8 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
    do_package_qa[noexec]="1"
    FILES:${PN} += "${datadir}/*"
    ```
-- **NOTES**   
+**exaplanition**   
    - **`DEPENDS`**: Includes build-time dependencies such as `meson`, `ninja`, and `pkgconfig`.
-        - **Expected Error:**
-            ```
-            ffmpeg was skipped: because it has a restricted license 'commercial'. Which is not listed in LICENSE_FLAGS_ACCEPTED
-            ERROR: Required build target 'scrcpy' has no buildable providers.
-            Missing or unbuildable dependency chain was: ['scrcpy', 'ffmpeg']
-            ```
-        - **Solution:** Add this to your `local.conf`:
-            ```bitbake
-            LICENSE_FLAGS_ACCEPTED = "commercial_ffmpeg"
-            ```
-       For More details: [Yocto Licensing](https://docs.yoctoproject.org/dev-manual/licenses.html#enabling-commercially-licensed-recipes)
-
    - **`RDEPENDS`**: Lists runtime dependencies like `android-tools` and `ffmpeg`.
    - Use `inherit` This ensures the build system correctly processes dependencies and configurations.
    - Configure `EXTRA_OEMESON`
@@ -1391,6 +1213,17 @@ In **BitBake**, the `clean`, `cleansstate`, and `cleanall` commands are used to 
          scrcpy: 11 installed and not shipped files. [installed-vs-shipped]
          ```
          **Solution:** Verify the required paths and explicitly include missing files in `FILES:${PN}`.
+   - **Expected Error:**
+      ```
+      ffmpeg was skipped: because it has a restricted license 'commercial'. Which is not listed in LICENSE_FLAGS_ACCEPTED
+      ERROR: Required build target 'scrcpy' has no buildable providers.
+      Missing or unbuildable dependency chain was: ['scrcpy', 'ffmpeg']
+      ```
+   **Solution:** Add this to your `local.conf`:
+   ```bitbake
+   LICENSE_FLAGS_ACCEPTED = "commercial_ffmpeg"
+   ```
+   For More details: [Yocto Licensing](https://docs.yoctoproject.org/dev-manual/licenses.html#enabling-commercially-licensed-recipes)
 
 ---
 
@@ -1442,10 +1275,3 @@ After booting into the image and testing everything, **RPiPlay wasn't displaying
             reboot
             ```
    3. **Run RPiPlay again**, and now video output should work properly!
-
-
-
-
-
-
-
