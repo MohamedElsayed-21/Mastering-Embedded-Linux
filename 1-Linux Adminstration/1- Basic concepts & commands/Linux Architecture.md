@@ -4,7 +4,31 @@
 
 Linux, like all modern operating systems, follows a layered architecture to manage hardware resources efficiently and provide a stable environment for user applications. Understanding its structure helps in grasping concepts like system calls, privilege levels, and kernel functionalities.
 
-## Overview of Linux Architecture
+---
+## What is an Operating System (OS)?
+
+The OS is **software** that:
+- **Directly interacts with hardware**  
+  - Only the OS is trusted to access hardware; user programs are not.
+  - OS must be ported to new hardware; user programs remain portable.
+- **Manages hardware resources**  
+  - Allocates, schedules, and protects access to files, memory, display pixels, etc.
+- **Provides high-level abstractions**  
+  - Hides messy hardware details behind convenient, portable interfaces.
+
+
+## Role of the Operating System
+The operating system (OS) serves as an intermediary between user applications and the hardware. This ensures:
+- **Process isolation [Abstraction]:**  
+  - Processes are isolated but can share resources via controlled namespaces.
+- **Self-protection [Security]:**  
+  - Prevents user processes from directly accessing hardware.
+- **Privileged access [Resource Management]:**  
+  - User processes run in **unprivileged mode**.
+  - OS runs in **privileged mode**.
+  - User programs must use **system calls** to safely request OS services.
+
+## Overview of Linux/GNU Architecture
 
 Linux is structured into three primary layers:
 
@@ -12,13 +36,6 @@ Linux is structured into three primary layers:
 2. **Kernel Space**: The core of the OS, responsible for managing system resources and providing controlled access to hardware. It includes essential components such as device drivers and system services.
 3. **User Space**: Where user applications and system utilities execute, interacting with the kernel through system calls.
 ![Gnu-Linux Architecture](../Images/GNULinux%20arch%20.png)
-## Role of the Operating System
-
-The operating system (OS) serves as an intermediary between user applications and the hardware. This ensures:
-
-- **Abstraction**: Applications do not need to manage hardware directly.
-- **Security**: Prevents unauthorized access to hardware.
-- **Resource Management**: Allocates CPU time, memory, and I/O efficiently.
 
 ## Privileged vs. User Mode
 
@@ -31,44 +48,51 @@ A **single mode bit** in the CPU’s control register determines the execution m
 
 When a program in user mode requires hardware interaction, it must request services from the kernel via **system calls**.
 
-### What Are System Calls?
 
-System Calls: Bridging User Space and Kernel Space. System calls provide a controlled way for user applications to access OS services, such as:
+## OS as an Abstraction Provider [System Calls]
 
-- **File Operations**: `open()`, `read()`, `write()`
-- **Process Control**: `fork()`, `exec()`, `exit()`
-- **Memory Management**: `mmap()`, `brk()`
+The OS acts as the **layer below** user programs, providing services via **system calls** (APIs like POSIX, Windows, etc.).
 
-### How System Calls Work
+**System Calls**: Bridging User Space and Kernel Space. System calls provide a controlled way for user applications to access OS services, such as:
 
-1. A user program calls a system function (e.g., `printf` invokes `write`).
-2. The function issues a **trap instruction**, triggering a software interrupt.
-3. The CPU switches to **kernel mode**, allowing the OS to process the request.
-4. Once complete, control returns to **user mode**.
+Examples:
+- **File System Access:** `open()`, `read()`, `write()`, `close()`
+- **Network Stack Access:** `connect()`, `listen()`, `read()`, `write()`
+- **Virtual Memory Management:** `brk()`, `shm_open()`
+- **Process Management:** `fork()`, `wait()`, `nice()`
 
-### Advantages and Drawbacks of System Calls
 
-**Advantages:**
+### What Happens When a Process Invokes a System Call?
 
-- **Hardware Abstraction**: Simplifies software development.
-- **Security**: Restricts direct access to hardware.
-- **Portability**: Programs can run across different hardware architectures.
+1. **System Call Invocation:**
+   - A user-space process (e.g., Process A) calls a system call.
+   - The hardware switches the CPU to **privileged mode** and **traps** into the OS.
+   - The OS invokes the appropriate **system call handler**.
 
-**Drawbacks:**
+2. **Execution in the OS:**
+   - In privileged mode, the OS can execute privileged instructions and directly interact with hardware (e.g., disks).
+   - Handling a system call might involve **long hardware interactions**.
 
-- **Performance Overhead**: Switching between user and kernel mode adds latency.
-- **Platform Dependency**: Different OS implementations may vary in system call behavior.
+3. **Returning to User Space:**
+   - Once the system call is serviced:
+     1. The CPU is switched back to **unprivileged mode**.
+     2. Control returns to the **user-level code** in Process A.
+   - The process continues running the next instruction after the system call.
 
-#### **Use Case: Program Execution and Mode Switching**
 
-1. A user program (e.g., a text editor) runs in **user mode**.
-2. The program executes computations and interacts with files.
-3. If the program needs to read a file, it makes a **system call** (`read()`), triggering a **trap instruction**.
-4. The CPU switches to **kernel mode** (`mode bit = 0`).
-5. The OS processes the request and returns control to **user mode** (`mode bit = 1`).
-6. The program resumes execution with the requested data.
+### How Function Calls Are Handled
 
-#### **What If the Program** Never Makes a System Call?
+- **Pure glibc functions:**  
+  - Some functions (e.g., `strcmp()` from `stdio.h`) are fully handled within glibc **without entering the kernel**.
+
+- **glibc functions that call the kernel:**  
+  - Some glibc routines internally invoke Linux system calls to access kernel services.
+
+- **Direct system call invocation:**  
+  - Programs can **directly invoke Linux system calls** without using glibc.
+  - However, direct use of system calls can **reduce portability** across different UNIX-like systems.
+
+### **What If the Program** Never Makes a System Call?
 
 If a user-space program runs indefinitely without making system calls (e.g., an infinite loop), the OS relies on a **hardware timer**:
 
@@ -129,7 +153,7 @@ Additionally, **device drivers**, which operate in **kernel space**, can also be
 Drivers are special programs that allow the OS to communicate with hardware. Since they interact directly with hardware, they run in **kernel mode**.
 
 
-## Kernel Structure Diagram
+### Kernel Structure Diagram
 
 The following diagram illustrates the interaction between kernel subsystems, user space, and hardware:
 
