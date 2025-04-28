@@ -28,7 +28,12 @@ The `freopen()` function allows a program to **redirect** standard I/O streams t
 
 This ability to manipulate file descriptors and streams gives UNIX its **flexibility** in handling I/O operations, allowing processes to work with different types of data sources in a seamless and efficient manner.
 
-## Core System Calls for File I/O
+##  **Why "Everything in Linux is a File"?**
+
+In Linux, the concept "everything is a file" comes from the fact that almost all resources are accessed using the same basic system calls: `open()`, `read()`, `write()`, and `close()`.  
+
+The kernel abstracts devices, sockets, pipes, and regular files under a unified file interface using file descriptors.  
+This design simplifies resource management, ensures consistency, and promotes portability.
 
 Performing file input and output (I/O) in UNIX is built around four essential **system calls**. While most programming languages and software packages interact with these calls indirectly through **I/O libraries**, understanding their functionality is crucial for low-level file operations.  
 
